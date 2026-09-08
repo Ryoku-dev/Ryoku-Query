@@ -1944,7 +1944,7 @@
     ],
     "answer": "Put personal Fish changes in `~/.config/fish/user.fish`. Ryoku loads it last and does not replace it during updates. Leave `~/.config/fish/config.fish` managed by Ryoku.",
     "risk": "informational",
-    "docs_url": "https://github.com/neur0map/ryoku-arch/blob/main/ryoku/apps/fish/config.fish#L79-L82",
+    "docs_url": "https://github.com/ryoku-dev/ryoku-arch/blob/main/ryoku/apps/fish/config.fish#L79-L82",
     "source_hints": [
       "ryoku/apps/fish/config.fish"
     ],

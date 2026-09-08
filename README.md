@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="https://raw.githubusercontent.com/neur0map/ryoku-arch/main/ryoku/assets/brand/logo-mark.png" alt="Ryoku" width="160" />
+<img src="https://raw.githubusercontent.com/ryoku-dev/ryoku-arch/main/ryoku/assets/brand/logo-mark.png" alt="Ryoku" width="160" />
 
 # Nero
 
@@ -42,7 +42,7 @@ cp .env.example env
 The bot uses a local stable Ryoku checkout for source-backed answers.
 
 ```bash
-git clone https://github.com/neur0map/ryoku-arch.git /path/to/ryoku
+git clone https://github.com/ryoku-dev/ryoku-arch.git /path/to/ryoku
 ```
 
 Point `RYOKU_REPO_PATH` in `env` at that checkout.
