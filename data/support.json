@@ -2170,6 +2170,23 @@
     "clarifies_with": []
   },
   {
+    "id": "keybinds.cheatsheet",
+    "title": "Open the Ryoku Keybind Cheatsheet",
+    "examples": [
+      "where is the Ryoku keybind cheat sheet",
+      "show me the default Ryoku shortcuts",
+      "what are the keyboard shortcuts in Ryoku",
+      "open the shortcut reference"
+    ],
+    "keywords": ["keybind", "shortcut", "cheat sheet", "cheatsheet", "hotkey", "keyboard"],
+    "exact_terms": ["Super + K", "keybind cheatsheet", "shortcut reference"],
+    "answer": "GUI: press `Super + K` to toggle Ryoku's read-only keybind cheatsheet. It groups the shipped shortcuts by category and has a search field for a key or action. To change a shortcut, use `Ryoku Settings > Keybinds`; the cheatsheet itself is only a reference.",
+    "risk": "informational",
+    "docs_url": "https://docs.ryoku.dev/docs/ui-ux",
+    "source_hints": ["ryoku/shell/quickshell/keys/Cheatsheet.qml", "ryoku/hyprland/modules/binds.lua", "ryoku/hub/quickshell/pages/KeybindsPage.qml"],
+    "clarifies_with": []
+  },
+  {
     "id": "config.user-overrides",
     "title": "Keep Personal Configuration Changes",
     "examples": [

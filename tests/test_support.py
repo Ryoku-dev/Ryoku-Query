@@ -99,6 +99,14 @@ class SupportCatalogTests(unittest.TestCase):
         self.assertIn("ryowalls", {term.lower() for term in wallpaper.exact_terms})
         self.assertIn("ryoku/shell/ryogami/", wallpaper.source_hints)
 
+    def test_catalog_has_current_keybind_cheatsheet_guidance(self):
+        cards = load_support_cards(Path("data/support.json"))
+        cheatsheet = next(card for card in cards if card.id == "keybinds.cheatsheet")
+
+        self.assertIn("Super + K", cheatsheet.answer)
+        self.assertIn("read-only", cheatsheet.answer)
+        self.assertIn("ryoku/shell/quickshell/keys/Cheatsheet.qml", cheatsheet.source_hints)
+
 
 class MappingEncoder:
     def __init__(self, vectors):
