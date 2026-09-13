@@ -65,17 +65,19 @@ Set:
 - `PROWL_AGENT_PATH` to the absolute Prowl executable, e.g. `/home/neur0map/workspace/prowl-agent/prowl-agent`. This prevents service `PATH` drift.
 - `SUPPORT_CHANNEL_ID` to the one Discord channel where ordinary messages should be answered. Leave it as `0` to require a mention/reply everywhere.
 - `FEEDBACK_DB_PATH` to a local SQLite file for Correct/Incorrect signals. It defaults to `runtime/nero-feedback.sqlite3` and must be backed up separately from Git.
-- `OLLAMA_HOST`, `GEMMA_MODEL=gemma4:e4b`, and `LFM_MODEL=lfm2.5:latest` for local answers
+- `OLLAMA_HOST`, `GEMMA_MODEL=gemma4:e4b`, and `LFM_MODEL=lfm2.5:latest` for the optional local rewrite path
+- `NERO_LLM_REWRITE=0` (default) to send approved support cards verbatim; set it to `1` only after a reviewed local-model evaluation
 - optionally `MODEL_NAME`, `PROWL_TIMEOUT_SECONDS`, `PROWL_RESULT_LIMIT`, and `OLLAMA_TIMEOUT_SECONDS`
 
 ### Local model behavior
 
-Nero retrieves the reviewed support card and/or Prowl citations **before** invoking a model. The model only turns that evidence into a concise Discord reply; it is not permitted to invent a command or a source.
+Nero retrieves the reviewed support card and/or Prowl citations **before** any local-model work. By default (`NERO_LLM_REWRITE=0`), it sends the approved support-card wording verbatim so commands, paths, and safety wording cannot be lost in a rewrite.
 
-- **Gemma (`gemma4:e4b`)** handles normal, reviewed support answers with thinking disabled.
-- **LFM (`lfm2.5:latest`)** handles replies backed by verified Prowl evidence, including diagnostic and contributor/source questions. Only its final response is sent to Discord.
-- Both routes receive the same evidence-only contract: no invented commands, URLs, paths, system state, or citations; ask one focused question when the evidence cannot identify the symptom; and lead with a read-only check before a state-changing recovery action unless the user explicitly asks to perform it.
-- The bot serializes local model calls and sends `keep_alive: 0`. This is deliberate: on this 14 GiB CPU-first host, keeping both models resident can cause model eviction or OOM. Additional Discord requests wait their turn and fall back to the reviewed answer if Ollama is unavailable.
+- Set `NERO_LLM_REWRITE=1` only for a model that passed a reviewed evaluation against the support catalog.
+- **Gemma (`gemma4:e4b`)** is the optional rewrite route for normal reviewed support answers with thinking disabled.
+- **LFM (`lfm2.5:latest`)** is the optional rewrite route for replies backed by verified Prowl evidence. Only its final response is eligible for Discord.
+- Both optional routes receive the same evidence-only contract: no invented commands, URLs, paths, system state, or citations; a read-only check before a state-changing recovery action; and no private reasoning in the response.
+- The bot serializes local model calls and sends `keep_alive: 0`. This is deliberate: on this 14 GiB CPU-first host, keeping both models resident can cause model eviction or OOM. Requests fall back to the reviewed answer if local inference is unavailable.
 
 
 ## Run

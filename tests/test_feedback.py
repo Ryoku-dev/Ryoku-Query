@@ -34,6 +34,7 @@ class FeedbackStoreTests(unittest.TestCase):
                         "card_id": None,
                         "model_route": "deterministic",
                         "source_status": "not_requested",
+                        "answer_revision": 2,
                         "actor_id": 7,
                         "verdict": "correct",
                     }
@@ -59,6 +60,7 @@ class FeedbackStoreTests(unittest.TestCase):
             self.assertEqual(row["card_id"], "shell.bar-style")
             self.assertEqual(row["model_route"], "gemma")
             self.assertEqual(row["source_status"], "not_requested")
+            self.assertEqual(row["answer_revision"], 2)
 
     def test_migrates_existing_answers_without_route_metadata(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -87,6 +89,7 @@ class FeedbackStoreTests(unittest.TestCase):
             self.assertIsNone(row["card_id"])
             self.assertEqual(row["model_route"], "deterministic")
             self.assertEqual(row["source_status"], "not_requested")
+            self.assertEqual(row["answer_revision"], 1)
 
         with tempfile.TemporaryDirectory() as directory:
             store = FeedbackStore(Path(directory) / "nero-feedback.sqlite3")

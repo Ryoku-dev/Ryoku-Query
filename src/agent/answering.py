@@ -48,8 +48,9 @@ def _includes_gui_guidance(text: str) -> bool:
 
 
 class Answerer:
-    def __init__(self, client: OllamaClient):
+    def __init__(self, client: OllamaClient, *, rewrite_enabled: bool = True):
         self.client = client
+        self.rewrite_enabled = rewrite_enabled
 
     async def render(
         self,
@@ -58,6 +59,8 @@ class Answerer:
         sources: ProwlResult | None = None,
     ) -> RenderedAnswer:
         if card.risk == "destructive":
+            return RenderedAnswer(card.answer)
+        if not self.rewrite_enabled:
             return RenderedAnswer(card.answer)
         route = "lfm" if sources is not None and sources.status == "ok" else "gemma"
         result: LLMResult = await self.client.answer(_prompt(query, card, sources), route=route)

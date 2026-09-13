@@ -32,6 +32,17 @@ def card(risk="informational", answer="Run `ryoku status` for a read-only health
 
 
 class AnswererTests(unittest.IsolatedAsyncioTestCase):
+    async def test_reviewed_mode_returns_the_catalog_answer_without_calling_a_model(self):
+        llm = LLM(LLMResult("ok", text="A shorter rewrite that loses the command."))
+        answerer = Answerer(llm, rewrite_enabled=False)
+        reviewed = "Run `ryoku status` for a read-only health summary."
+
+        result = await answerer.render("is it healthy?", card(answer=reviewed))
+
+        self.assertEqual(result.text, reviewed)
+        self.assertIsNone(result.route)
+        self.assertEqual(llm.calls, [])
+
     async def test_curated_answer_uses_gemma_with_reviewed_evidence(self):
         llm = LLM(LLMResult("ok", text="Use `ryoku status` to check it."))
         answerer = Answerer(llm)

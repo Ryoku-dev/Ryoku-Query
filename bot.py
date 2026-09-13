@@ -28,6 +28,7 @@ class Config:
     lfm_model: str
     ollama_timeout: float
     feedback_path: Path
+    llm_rewrite: bool
 
 
 def load_config() -> Config:
@@ -39,6 +40,7 @@ def load_config() -> Config:
     limit = int(os.getenv("PROWL_RESULT_LIMIT", "20"))
     support_channel_id = int(os.getenv("SUPPORT_CHANNEL_ID", "0"))
     ollama_timeout = float(os.getenv("OLLAMA_TIMEOUT_SECONDS", "120"))
+    llm_rewrite_value = os.getenv("NERO_LLM_REWRITE", "0").strip()
     ollama_host = os.getenv("OLLAMA_HOST", "http://127.0.0.1:11434").rstrip("/")
     if not ollama_host.startswith(("http://", "https://")):
         raise RuntimeError("OLLAMA_HOST must be an HTTP URL")
@@ -50,6 +52,8 @@ def load_config() -> Config:
         raise RuntimeError("SUPPORT_CHANNEL_ID must be a positive Discord channel ID")
     if not 10 <= ollama_timeout <= 240:
         raise RuntimeError("OLLAMA_TIMEOUT_SECONDS must be between 10 and 240")
+    if llm_rewrite_value not in {"0", "1"}:
+        raise RuntimeError("NERO_LLM_REWRITE must be 0 or 1")
     repo = os.getenv("RYOKU_REPO_PATH", "").strip()
     return Config(
         token=token,
@@ -69,6 +73,7 @@ def load_config() -> Config:
         feedback_path=Path(
             os.getenv("FEEDBACK_DB_PATH", "runtime/nero-feedback.sqlite3")
         ),
+        llm_rewrite=llm_rewrite_value == "1",
     )
 
 

@@ -172,6 +172,7 @@ class ConfigTests(unittest.TestCase):
             "GEMMA_MODEL": "gemma4:e4b",
             "LFM_MODEL": "lfm2.5:latest",
             "OLLAMA_TIMEOUT_SECONDS": "90",
+            "NERO_LLM_REWRITE": "1",
         }
         with patch("bot.load_dotenv"), patch.dict(
             os.environ, values, clear=True
@@ -188,6 +189,15 @@ class ConfigTests(unittest.TestCase):
         self.assertEqual(config.gemma_model, "gemma4:e4b")
         self.assertEqual(config.lfm_model, "lfm2.5:latest")
         self.assertEqual(config.ollama_timeout, 90.0)
+        self.assertTrue(config.llm_rewrite)
+
+    def test_defaults_to_reviewed_answers_without_model_rewrites(self):
+        with patch("bot.load_dotenv"), patch.dict(
+            os.environ, {"TOKEN": "secret"}, clear=True
+        ):
+            config = load_config()
+
+        self.assertFalse(config.llm_rewrite)
 
     def test_requires_token(self):
         with patch("bot.load_dotenv"), patch.dict(
@@ -308,6 +318,7 @@ class HandlerTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(record["card_id"], card.id)
             self.assertEqual(record["model_route"], "deterministic")
             self.assertEqual(record["source_status"], "not_requested")
+            self.assertEqual(record["answer_revision"], 2)
 
     async def test_ambiguity_returns_the_best_safe_answer_without_a_question(self):
         first = support_card(id="health.report", title="Create report")

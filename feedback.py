@@ -10,6 +10,7 @@ VERDICTS = ("correct", "partially_correct", "incorrect")
 DECISION_KINDS = ("answer", "clarify", "no_match", "safety", "unknown")
 MODEL_ROUTES = ("gemma", "lfm", "deterministic")
 SOURCE_STATUSES = ("ok", "no_match", "unavailable", "not_requested")
+ANSWER_REVISION = 2
 BUTTON_LABELS = {
     "correct": "Correct",
     "partially_correct": "Partially correct",
@@ -74,7 +75,8 @@ class FeedbackStore:
                     decision_kind TEXT NOT NULL DEFAULT 'unknown',
                     card_id TEXT,
                     model_route TEXT NOT NULL DEFAULT 'deterministic',
-                    source_status TEXT NOT NULL DEFAULT 'not_requested'
+                    source_status TEXT NOT NULL DEFAULT 'not_requested',
+                    answer_revision INTEGER NOT NULL DEFAULT 1
                 );
                 CREATE TABLE IF NOT EXISTS feedback (
                     answer_message_id INTEGER NOT NULL,
@@ -87,6 +89,7 @@ class FeedbackStore:
             )
             self._migrate_answers_schema(connection)
             self._migrate_feedback_schema(connection)
+            connection.execute(f"PRAGMA user_version = {ANSWER_REVISION}")
 
     @staticmethod
     def _migrate_answers_schema(connection: sqlite3.Connection) -> None:
@@ -98,6 +101,7 @@ class FeedbackStore:
             ("card_id", "TEXT"),
             ("model_route", "TEXT NOT NULL DEFAULT 'deterministic'"),
             ("source_status", "TEXT NOT NULL DEFAULT 'not_requested'"),
+            ("answer_revision", "INTEGER NOT NULL DEFAULT 1"),
         )
         for name, definition in additions:
             if name not in columns:
@@ -136,6 +140,7 @@ class FeedbackStore:
         card_id: str | None = None,
         model_route: str = "deterministic",
         source_status: str = "not_requested",
+        answer_revision: int = ANSWER_REVISION,
     ) -> None:
         if decision_kind not in DECISION_KINDS:
             raise ValueError("invalid decision_kind")
@@ -143,6 +148,8 @@ class FeedbackStore:
             raise ValueError("invalid model_route")
         if source_status not in SOURCE_STATUSES:
             raise ValueError("invalid source_status")
+        if not 1 <= answer_revision <= ANSWER_REVISION:
+            raise ValueError("invalid answer_revision")
         if card_id is not None and (
             not isinstance(card_id, str)
             or not card_id
@@ -155,8 +162,8 @@ class FeedbackStore:
                 """
                 INSERT OR IGNORE INTO answers (
                     answer_message_id, request_message_id, requester_id, decision_kind,
-                    card_id, model_route, source_status
-                ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                    card_id, model_route, source_status, answer_revision
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     answer_message_id,
@@ -166,6 +173,7 @@ class FeedbackStore:
                     card_id,
                     model_route,
                     source_status,
+                    answer_revision,
                 ),
             )
 
@@ -218,6 +226,7 @@ class FeedbackStore:
                     answers.card_id,
                     answers.model_route,
                     answers.source_status,
+                    answers.answer_revision,
                     feedback.actor_id,
                     feedback.verdict
                 FROM feedback
@@ -236,8 +245,9 @@ class FeedbackStore:
                 "card_id": row[4],
                 "model_route": row[5],
                 "source_status": row[6],
-                "actor_id": row[7],
-                "verdict": row[8],
+                "answer_revision": row[7],
+                "actor_id": row[8],
+                "verdict": row[9],
             }
             for row in rows
         ]

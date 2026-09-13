@@ -26,7 +26,8 @@ def build_answerer(config: Config) -> Answerer:
             config.gemma_model,
             config.lfm_model,
             timeout=config.ollama_timeout,
-        )
+        ),
+        rewrite_enabled=config.llm_rewrite,
     )
 
 
