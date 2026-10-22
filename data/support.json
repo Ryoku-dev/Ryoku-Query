@@ -1403,20 +1403,24 @@
       "What's the keyboard shortcut or command for bringing up the app picker?",
       "What's the shortcut for the Ryoku app launcher?",
       "What shortcut brings up the app launcher?",
-      "What opens the app launcher in Ryoku?"
+      "What opens the app launcher in Ryoku?",
+      "Where in Settings can I choose a different launcher style?",
+      "How do I change the launcher layout without editing config files?"
     ],
     "keywords": [
       "launcher",
       "apps",
       "command palette",
       "search",
-      "super space"
+      "super space",
+      "launcher style",
+      "launcher variant"
     ],
     "exact_terms": [
       "Super + Space",
       "ryoku-shell launcher"
     ],
-    "answer": "Press `Super + Space` to open Ryoku's launcher and command palette. It can launch apps, calculate, search files and the web, manage clipboard items, switch windows, run system actions, and control media. The equivalent shell command is `ryoku-shell launcher`.",
+    "answer": "GUI: press `Super + Space` to open Ryoku's launcher and command palette. It launches apps, searches files and the web, manages clipboard items, switches windows, runs system actions, and controls media. To change its style, open `Ryoku Settings > App Launcher`; choose Main, Hero, or OkShell there. If you specifically need a terminal equivalent, use `ryoku-shell launcher`.",
     "risk": "informational",
     "docs_url": "https://docs.ryoku.dev/docs/launcher",
     "source_hints": [
@@ -1479,7 +1483,9 @@
       "How are my overrides layered separately from Ryoku's packaged defaults?",
       "How do I stop my custom tweaks from being overwritten when the system is upgraded?",
       "I tweaked some Ryoku-managed files; will the next update overwrite my changes?",
-      "I edited a tracked config locally; will the next Ryoku update overwrite it, and what is the supported approach?"
+      "I edited a tracked config locally; will the next Ryoku update overwrite it, and what is the supported approach?",
+      "Do I need to edit files just to change normal desktop settings?",
+      "Where do I customize Ryoku safely so updates keep working?"
     ],
     "keywords": [
       "user edits",
@@ -1493,7 +1499,7 @@
       "~/.config/ryoku/user_edits",
       "user_edits"
     ],
-    "answer": "Put persistent personal overrides under `~/.config/ryoku/user_edits`. Ryoku keeps shipped configuration and user edits in separate trees, then layers the overlay onto the live config, so updating the shipped base does not overwrite your personal files.",
+    "answer": "For normal desktop settings, use Ryoku Settings first; its managed settings are update-safe and should not be hand-edited. Use `~/.config/ryoku/user_edits` only when you deliberately fork a whole Ryoku-managed file: it mirrors `~/.config`, is layered last on update, and that fork will no longer receive upstream changes automatically. For a simple raw Hyprland rule, use `~/.config/hypr/user.lua` instead.",
     "risk": "informational",
     "docs_url": "https://docs.ryoku.dev/docs/updates",
     "source_hints": [
@@ -2125,11 +2131,13 @@
       "is there an update tool for the new Ryoku beta versions",
       "do I need to reinstall Ryoku from a USB ISO for each beta",
       "how do I update Ryoku",
-      "update my installed Ryoku system"
+      "update my installed Ryoku system",
+      "where do I see available Ryoku updates in the GUI",
+      "is there a settings page for package updates"
     ],
-    "keywords": ["update", "beta", "stable", "iso", "usb", "installed", "version"],
+    "keywords": ["update", "updates", "package", "packages", "beta", "stable", "iso", "usb", "installed", "version"],
     "exact_terms": ["ryoku update", "Ryoku Settings > System > Updates", "beta versions"],
-    "answer": "GUI: use `Ryoku Settings > System > Updates` to check and start the normal update flow. CLI: run `ryoku update`. On a packaged install it updates packages, materializes the new configuration, reloads the desktop, and runs Doctor; it does not require reinstalling from an ISO. A development checkout is different: `ryoku update` follows its configured git channel and redeploys it. Do not use an installer/erase-disk answer for a normal update question.",
+    "answer": "GUI: open `Ryoku Settings > System > Updates` to review changes and start the normal Ryoku update. It updates the signed Ryoku package set, refreshes Ryoku's configuration, reloads the desktop, and runs Doctor; when Snapper is available and configured it attempts a pre-update snapshot for rollback without blocking an update if that snapshot is unavailable. It does not require reinstalling from an ISO. System-package and kernel updates are separate and appear under `SYSTEM PACKAGES`; use your distribution's normal update flow for those, or `ryoku update --system` only if you intentionally want both lanes. CLI alternative: `ryoku update`.",
     "risk": "state-changing",
     "docs_url": "https://docs.ryoku.dev/docs/updates",
     "source_hints": ["docs/updates.md", "ryoku/hub/quickshell/pages/UpdatesPage.qml", "ryoku/cli/internal/updater/update.go"],
@@ -2193,11 +2201,13 @@
       "how do I apply my custom settings without getting overwritten",
       "how can i access my config files",
       "my cava config keeps resetting every reboot",
-      "where do I put Ryoku overrides"
+      "where do I put Ryoku overrides",
+      "where do I change desktop settings safely",
+      "do normal Ryoku customizations need config files"
     ],
     "keywords": ["config", "custom", "override", "overwritten", "reset", "cava", "user edits"],
     "exact_terms": ["~/.config/ryoku/user_edits", "hypr/user.lua", "user overrides"],
-    "answer": "GUI-managed settings belong in Ryoku Settings; its state under `~/.config/ryoku` is update-safe. For additive file overrides, use `~/.config/ryoku/user_edits`, mirroring the target path under `~/.config`; materialize lays that overlay on top last. For raw Hyprland settings, use `~/.config/hypr/user.lua`, which updates never touch. Do not edit files that Ryoku ships directly under the live base, because materialize replaces those on update.",
+    "answer": "Change GUI-managed settings in Ryoku Settings first; its managed state is update-safe, so normal customization does not need hand-edited files. For a simple raw Hyprland rule the Hub cannot express, use `~/.config/hypr/user.lua`, which updates never touch. Use `~/.config/ryoku/user_edits` only to deliberately fork a whole Ryoku-managed file at its mirrored path; materialize layers it last, but that fork stops receiving upstream changes automatically. Do not edit Ryoku's shipped live base, because materialize replaces it on update.",
     "risk": "informational",
     "docs_url": "https://docs.ryoku.dev/docs/updates",
     "source_hints": ["docs/updates.md", "ryoku/hyprland/user.lua"],
