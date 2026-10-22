@@ -62,9 +62,10 @@ Set:
 - `TOKEN` to Nero's Discord bot token
 - `RYOKU_REPO_PATH` to your cloned Ryoku checkout
 - `PROWL_AGENT_PATH` to the absolute Prowl executable, e.g. `/home/neur0map/workspace/prowl-agent/prowl-agent`. This prevents service `PATH` drift.
-- `SUPPORT_CHANNEL_ID` to the one Discord channel where ordinary messages should be answered. Leave it as `0` to require a mention/reply everywhere.
+- `SUPPORT_CHANNEL_ID` to the channel where ordinary requests are answered; replies or mentions aimed at other members are ignored unless Nero is also addressed.
 - `FEEDBACK_DB_PATH` to a local SQLite file for Correct/Incorrect signals. It defaults to `runtime/nero-feedback.sqlite3` and must be backed up separately from Git.
 - `NERO_CLOUD`, `NERO_LLM_SOCKET`, `NERO_LLM_MODEL`, and `NERO_LLM_TIMEOUT_SECONDS` for the cloud answer bridge
+- `NERO_USER_LIMIT` to the per-user answer limit as `count/seconds` (default `6/300`); set `0` to disable it.
 - `GUI_MAP_PATH` and `DOCS_CHUNKS_PATH` for the generated knowledge files
 - `HELP_FORUM_ID` to answer new posts in the support forum automatically
 - optionally `MODEL_NAME`, `PROWL_TIMEOUT_SECONDS`, and `PROWL_RESULT_LIMIT`

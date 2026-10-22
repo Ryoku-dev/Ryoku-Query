@@ -1,6 +1,9 @@
 from __future__ import annotations
 
 import re
+import time
+from collections import deque
+from collections.abc import Callable
 from pathlib import Path
 
 import discord
@@ -8,6 +11,43 @@ import discord
 from feedback import FeedbackStore
 from src.agent.pipeline import SupportPipeline, Turn
 from src.agent.replies import answer_embed, answer_view
+
+
+class UserRateLimiter:
+    def __init__(
+        self,
+        limit: int,
+        window_seconds: float,
+        *,
+        clock: Callable[[], float] = time.monotonic,
+    ) -> None:
+        if limit < 0:
+            raise ValueError("limit must be non-negative")
+        if window_seconds <= 0:
+            raise ValueError("window_seconds must be positive")
+        self.limit = limit
+        self.window_seconds = window_seconds
+        self._clock = clock
+        self._entries: dict[int, deque[float]] = {}
+
+    def allow(self, user_id: int) -> bool:
+        if self.limit == 0:
+            return True
+
+        now = self._clock()
+        cutoff = now - self.window_seconds
+        for tracked_user_id, entries in tuple(self._entries.items()):
+            while entries and entries[0] <= cutoff:
+                entries.popleft()
+            if not entries:
+                del self._entries[tracked_user_id]
+
+        entries = self._entries.setdefault(user_id, deque())
+        if len(entries) >= self.limit:
+            return False
+        entries.append(now)
+        return True
+
 
 _NON_REQUESTS = frozenset(
     {
@@ -77,6 +117,18 @@ def extract_query(
         _is_help_forum_thread(channel, help_forum_id)
         and getattr(message, "id", None) == getattr(channel, "id", None)
     )
+    if (
+        in_support_channel
+        and not mentioned
+        and not replied
+        and not forum_starter
+        and (
+            getattr(message, "reference", None) is not None
+            or bool(getattr(message, "mentions", ()))
+        )
+    ):
+        return None
+
     if not in_support_channel and not mentioned and not replied and not forum_starter:
         return None
 
@@ -203,6 +255,7 @@ async def handle_message(
     support_channel_id: int | None = None,
     help_forum_id: int | None = None,
     feedback: FeedbackStore | None = None,
+    rate_limiter: UserRateLimiter | None = None,
 ) -> bool:
     query = extract_query(
         message,
@@ -213,6 +266,18 @@ async def handle_message(
     if query is None:
         query = await _unresolved_reply_query(message, bot_user_id)
     if query is None:
+        return False
+
+    author_id = getattr(getattr(message, "author", None), "id", None)
+    if (
+        rate_limiter is not None
+        and isinstance(author_id, int)
+        and not rate_limiter.allow(author_id)
+    ):
+        try:
+            await message.add_reaction("⏳")
+        except Exception:
+            pass
         return False
 
     history = await _reply_history(message, bot_user_id, help_forum_id)

@@ -3,7 +3,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from bot import extract_query, handle_message, load_config
+from bot import UserRateLimiter, extract_query, handle_message, load_config
 from src.agent.pipeline import PipelineAnswer, Turn
 
 
@@ -60,6 +60,14 @@ class Channel:
         return self.response
 
 
+class Clock:
+    def __init__(self):
+        self.now = 0.0
+
+    def __call__(self):
+        return self.now
+
+
 class Message:
     def __init__(
         self,
@@ -80,9 +88,13 @@ class Message:
         self.reference = reference
         self.channel = channel or Channel(channel_id)
         self.embeds = list(embeds)
+        self.reactions = []
 
     async def reply(self, **kwargs):
         return await self.channel.send(**kwargs)
+
+    async def add_reaction(self, emoji):
+        self.reactions.append(emoji)
 
 
 class Pipeline:
@@ -155,6 +167,27 @@ class InvocationTests(unittest.TestCase):
             extract_query(message, bot_user_id=42, support_channel_id=777)
         )
 
+    def test_support_channel_skips_reply_to_another_member(self):
+        other_member = Message("Try changing the scale.", author=User(8))
+        message = Message(
+            "Where is that setting?",
+            reference=Reference(other_member),
+            channel_id=777,
+        )
+        self.assertIsNone(
+            extract_query(message, bot_user_id=42, support_channel_id=777)
+        )
+
+    def test_support_channel_skips_message_mentioning_another_member(self):
+        message = Message(
+            "<@8> where is that setting?",
+            mentions=(User(8),),
+            channel_id=777,
+        )
+        self.assertIsNone(
+            extract_query(message, bot_user_id=42, support_channel_id=777)
+        )
+
     def test_mention_bypasses_support_channel_filter(self):
         message = Message(
             "<@42> thanks!",
@@ -184,6 +217,7 @@ class ConfigTests(unittest.TestCase):
             "NERO_LLM_SOCKET": "/tmp/nero.sock",
             "NERO_LLM_MODEL": "gpt-6-luna",
             "NERO_LLM_TIMEOUT_SECONDS": "18",
+            "NERO_USER_LIMIT": "3/45",
         }
         with patch("bot.load_dotenv"), patch.dict(
             os.environ,
@@ -202,6 +236,8 @@ class ConfigTests(unittest.TestCase):
         self.assertEqual(config.prowl_executable, "/opt/tools/prowl-agent")
         self.assertEqual(config.support_channel_id, 123)
         self.assertEqual(config.help_forum_id, 456)
+        self.assertEqual(config.user_limit_count, 3)
+        self.assertEqual(config.user_limit_seconds, 45)
         self.assertFalse(config.cloud_enabled)
         self.assertEqual(config.llm_socket, "/tmp/nero.sock")
         self.assertEqual(config.llm_model, "gpt-6-luna")
@@ -222,6 +258,8 @@ class ConfigTests(unittest.TestCase):
         self.assertEqual(config.gui_map_path, Path("data/gui_map.json"))
         self.assertEqual(config.docs_path, Path("data/docs_chunks.json"))
         self.assertEqual(config.help_forum_id, 0)
+        self.assertEqual(config.user_limit_count, 6)
+        self.assertEqual(config.user_limit_seconds, 300)
 
     def test_rejects_invalid_cloud_switch(self):
         with patch("bot.load_dotenv"), patch.dict(
@@ -249,6 +287,27 @@ class ConfigTests(unittest.TestCase):
             clear=True,
         ), self.assertRaisesRegex(RuntimeError, "HELP_FORUM_ID"):
             load_config()
+
+    def test_zero_user_limit_disables_rate_limiting(self):
+        with patch("bot.load_dotenv"), patch.dict(
+            os.environ,
+            {"TOKEN": "secret", "NERO_USER_LIMIT": "0"},
+            clear=True,
+        ):
+            config = load_config()
+
+        self.assertEqual(config.user_limit_count, 0)
+
+    def test_rejects_invalid_user_limit(self):
+        for value in ("bad", "2/0", "-1/60"):
+            with self.subTest(value=value), patch(
+                "bot.load_dotenv"
+            ), patch.dict(
+                os.environ,
+                {"TOKEN": "secret", "NERO_USER_LIMIT": value},
+                clear=True,
+            ), self.assertRaisesRegex(RuntimeError, "NERO_USER_LIMIT"):
+                load_config()
 
 
 class HandlerTests(unittest.IsolatedAsyncioTestCase):
@@ -395,6 +454,130 @@ class HandlerTests(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(handled)
         self.assertEqual(pipeline.queries, ["thanks!"])
 
+
+    async def test_rate_limit_reacts_without_calling_pipeline(self):
+        channel = Channel(777)
+        pipeline = Pipeline()
+        limiter = UserRateLimiter(2, 60)
+
+        for message_id in (1, 2):
+            handled = await handle_message(
+                Message(
+                    "Where is the display setting?",
+                    message_id=message_id,
+                    author=User(7),
+                    channel=channel,
+                ),
+                42,
+                pipeline,
+                Path("missing.png"),
+                support_channel_id=777,
+                rate_limiter=limiter,
+            )
+            self.assertTrue(handled)
+
+        limited = Message(
+            "Where is the display setting?",
+            message_id=3,
+            author=User(7),
+            channel=channel,
+        )
+        handled = await handle_message(
+            limited,
+            42,
+            pipeline,
+            Path("missing.png"),
+            support_channel_id=777,
+            rate_limiter=limiter,
+        )
+
+        self.assertFalse(handled)
+        self.assertEqual(
+            pipeline.queries,
+            [
+                "Where is the display setting?",
+                "Where is the display setting?",
+            ],
+        )
+        self.assertEqual(limited.reactions, ["⏳"])
+
+    async def test_rate_limit_window_slides(self):
+        channel = Channel(777)
+        pipeline = Pipeline()
+        clock = Clock()
+        limiter = UserRateLimiter(1, 60, clock=clock)
+
+        first = Message(
+            "Where is the display setting?",
+            author=User(7),
+            channel=channel,
+        )
+        self.assertTrue(
+            await handle_message(
+                first,
+                42,
+                pipeline,
+                Path("missing.png"),
+                support_channel_id=777,
+                rate_limiter=limiter,
+            )
+        )
+        clock.now = 59
+        blocked = Message(
+            "Where is the display setting?",
+            author=User(7),
+            channel=channel,
+        )
+        self.assertFalse(
+            await handle_message(
+                blocked,
+                42,
+                pipeline,
+                Path("missing.png"),
+                support_channel_id=777,
+                rate_limiter=limiter,
+            )
+        )
+        clock.now = 60
+        after_window = Message(
+            "Where is the display setting?",
+            author=User(7),
+            channel=channel,
+        )
+        self.assertTrue(
+            await handle_message(
+                after_window,
+                42,
+                pipeline,
+                Path("missing.png"),
+                support_channel_id=777,
+                rate_limiter=limiter,
+            )
+        )
+        self.assertEqual(len(pipeline.queries), 2)
+
+    async def test_zero_rate_limit_disables_limiter(self):
+        channel = Channel(777)
+        pipeline = Pipeline()
+        limiter = UserRateLimiter(0, 60)
+
+        for message_id in range(8):
+            handled = await handle_message(
+                Message(
+                    "Where is the display setting?",
+                    message_id=message_id,
+                    author=User(7),
+                    channel=channel,
+                ),
+                42,
+                pipeline,
+                Path("missing.png"),
+                support_channel_id=777,
+                rate_limiter=limiter,
+            )
+            self.assertTrue(handled)
+
+        self.assertEqual(len(pipeline.queries), 8)
 
 if __name__ == "__main__":
     unittest.main()

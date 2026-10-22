@@ -299,6 +299,23 @@ class PipelineTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(answer.text, self.card.answer)
         self.assertEqual(answer.note, "invalid:command:ryoku teleport")
 
+    async def test_system_prompt_commands_are_allowed_without_evidence(self):
+        commands = (
+            "ryoku doctor",
+            "ryoku doctor --check",
+            "ryoku doctor --report",
+            "ryoku status",
+        )
+        for command in commands:
+            with self.subTest(command=command):
+                cloud = FakeCloud(LLMResult("ok", text=f"Run `{command}`."))
+                pipeline, _ = self.pipeline(cloud)
+
+                answer = await pipeline.answer("What should I run?")
+
+                self.assertEqual(answer.route, "cloud")
+                self.assertEqual(answer.note, "")
+
     async def test_unavailable_cloud_falls_back_to_card(self):
         cloud = FakeCloud(LLMResult("unavailable", error="busy"))
         pipeline, _ = self.pipeline(cloud)

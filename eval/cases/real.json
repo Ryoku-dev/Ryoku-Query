@@ -74,10 +74,10 @@
     "question": "How can I place another desktop widget?",
     "history": [],
     "expect": {
-      "must_mention_any": [["right-click", "Edit desktop"], ["add a widget", "widget"]],
+      "must_mention_any": [["Ryoku Settings > Widgets", "Ryoku Hub > Widgets", "Widgets"], ["widget"]],
       "must_not_mention": ["~/.config/quickshell"],
       "gui_first": true,
-      "ideal": "Right-click the wallpaper, choose Edit desktop, add the widget, then drag and resize it there. Each widget's right-click menu exposes its own settings; additional widgets can come from Ryostore. (source: docs/faq.mdx)"
+      "ideal": "On stable, open Ryoku Settings > Widgets, select the widget, enable it, and use its placement controls. On the unstable channel, right-click the wallpaper and choose Edit desktop to add, drag, and resize widgets directly. Additional widgets can come from Ryostore. (source: stable GUI map; docs/faq.mdx for unstable)"
     },
     "source": "nero-exchange",
     "verdict_then": "none",
@@ -116,10 +116,10 @@
     "question": "How do I join the testing channel?",
     "history": [],
     "expect": {
-      "must_mention_any": [["Ryoku Settings > Updates", "Updates"], ["ryoku track unstable"]],
+      "must_mention_any": [["Ryoku Settings > Updates", "Updates"], ["ryoku track testing", "ryoku track unstable-dev"]],
       "must_not_mention": ["git checkout unstable-dev"],
       "gui_first": true,
-      "ideal": "Use the channel control in Ryoku Settings > Updates, or run `ryoku track unstable`, then update normally. Stable follows named releases; unstable follows the last unstable-dev commit that passed the Testing gate. On current unstable-dev the source lane lives under `~/ryoku-arch`, and status also reports build/check gate state. (source: docs/updates.mdx)"
+      "ideal": "On stable, use the channel control in Ryoku Settings > Updates, or run `ryoku track testing` (also accepted as `ryoku track unstable-dev`), then update normally. Do not use `ryoku track unstable` on stable; that spelling is accepted by the unstable channel's CLI. (source: stable ryoku/cli)"
     },
     "source": "nero-exchange",
     "verdict_then": "none",
@@ -214,10 +214,10 @@
     "question": "Onde vejo todos os atalhos atuais?",
     "history": [],
     "expect": {
-      "must_mention_any": [["Super+K", "Mod + K"], ["Kit"]],
+      "must_mention_any": [["Super+K", "Mod + K"], ["lista de atalhos", "cheatsheet", "Kit"]],
       "must_not_mention": ["binds.lua"],
       "gui_first": true,
-      "ideal": "Pressione Super+K para abrir o Kit. Ele mostra a lista ativa da sua máquina, inclusive suas próprias alterações, e o mesmo atalho fecha a tela. (source: docs/keybindings.mdx)"
+      "ideal": "No canal estável, pressione Super+K para abrir a lista de atalhos ativa da máquina; o mesmo atalho a fecha. No canal instável, essa tela se chama Kit. (source: stable GUI map; docs/keybindings.mdx for unstable)"
     },
     "source": "nero-exchange",
     "verdict_then": "incorrect",
@@ -368,10 +368,10 @@
     "question": "What does Rashin add to the desktop?",
     "history": [],
     "expect": {
-      "must_mention_any": [["AI agent"], ["Alt+Space", "Alt + Space"], ["vault"]],
+      "must_mention_any": [["AI agent"], ["Ryoku Settings > Rashin", "Ryoku Hub > Rashin", "dashboard"], ["vault"]],
       "must_not_mention": ["cloud-only"],
       "gui_first": true,
-      "ideal": "Rashin is Ryoku's local AI agent layer: Alt+Space opens quick Ask, Super+Alt+Space opens the longer Agent/Rashin window, and its on-disk knowledge vault maps your machine for agents. Hermes is the harness and model/provider setup behind it. (source: docs/rashin.mdx)"
+      "ideal": "Rashin is Ryoku's local AI agent layer. On stable, open Ryoku Settings > Rashin to set up Hermes and open its dashboard; its on-disk knowledge vault maps the machine for agents. On the unstable channel, Alt+Space opens quick Ask and Super+Alt+Space opens the longer Agent/Rashin window. (source: stable GUI map; docs/rashin.mdx for unstable)"
     },
     "source": "nero-exchange",
     "verdict_then": "incorrect",
@@ -578,10 +578,10 @@
     "question": "Where is the wallpaper depth control now?",
     "history": [],
     "expect": {
-      "must_mention_any": [["right-click", "Edit desktop"], ["depth"]],
+      "must_mention_any": [["right-click", "wallpaper"], ["Depth", "Parallax", "Depth settings"]],
       "must_not_mention": ["Ryoku Hub > Widgets"],
       "gui_first": true,
-      "ideal": "Right-click the wallpaper and choose Edit desktop. Depth, parallax, desktop widgets, and the visualizer are arranged on the desktop itself rather than on a Hub page. (source: docs/settings.mdx)"
+      "ideal": "On stable, right-click the wallpaper, open Depth or Parallax, and use Depth settings… for the full controls. On the unstable channel, right-click the wallpaper and choose Edit desktop; depth and parallax moved into the desktop editor there. (source: stable desktop menu; docs/settings.mdx for unstable)"
     },
     "source": "help-thread",
     "verdict_then": null,
@@ -623,7 +623,7 @@
       "must_mention_any": [["Super+M", "Mod + M"], ["visualizer", "visualiser"]],
       "must_not_mention": ["kill cava permanently"],
       "gui_first": true,
-      "ideal": "Press Super+M to toggle the desktop audio visualizer. Its richer placement and style controls are available while editing the desktop; Super+Shift+M only changes whether it sits over windows. (source: docs/keybindings.mdx)"
+      "ideal": "Press Super+M to toggle the desktop audio visualizer. On stable, its placement and style controls are under Ryoku Settings > Desktop > Visualizer. On the unstable channel, those richer controls are available while editing the desktop; Super+Shift+M only changes whether it sits over windows. (source: stable GUI map; docs/keybindings.mdx for unstable)"
     },
     "source": "help-thread",
     "verdict_then": null,
@@ -847,7 +847,7 @@
       "must_mention_any": [["Super+Space", "Mod + Space"], ["Super+K", "Mod + K"]],
       "must_not_mention": ["Alt+F2"],
       "gui_first": true,
-      "ideal": "Press Super+Space and type to launch an app. Keep Kit open with Super+K while learning; it shows the live shortcut list, including your changes, and F1 inside the launcher explains its search prefixes. (source: docs/keybindings.mdx)"
+      "ideal": "Press Super+Space and type to launch an app. On stable, Super+K opens the keybind cheatsheet; on the unstable channel that screen is called Kit. F1 inside the launcher explains its search prefixes. (source: stable GUI map; docs/keybindings.mdx for unstable)"
     },
     "source": "general",
     "verdict_then": null,
@@ -886,10 +886,10 @@
     "question": "Do I need Arch installed before Ryoku?",
     "history": [],
     "expect": {
-      "must_mention_any": [["ISO", "Arch", "CachyOS"], ["convert", "existing"]],
+      "must_mention_any": [["ISO", "Arch", "CachyOS"], ["Arch-based", "Debian-based", "convert", "existing"]],
       "must_not_mention": ["archinstall is required"],
       "gui_first": false,
-      "ideal": "No. Ryoku provides signed Arch, CachyOS, and Void installer ISOs that lay down the base system and desktop. If you already run Arch, CachyOS, Void, or Fedora, use the in-place converter instead of reinstalling. (source: docs/install.mdx)"
+      "ideal": "No. Stable provides signed stock-Arch and CachyOS ISO variants that install the base system and desktop. On an existing x86_64 Arch-based or Debian-based system, the in-place converter is available instead; stable does not offer Void or Fedora ISOs or converter targets. (source: stable installation/iso profile and ryoku-shell-installer)"
     },
     "source": "general",
     "verdict_then": null,
@@ -914,10 +914,10 @@
     "question": "Como abro o gravador de tela integrado?",
     "history": [],
     "expect": {
-      "must_mention_any": [["Super+Shift+S", "Mod + Shift + S"], ["Ryoshot", "gpu-screen-recorder"]],
+      "must_mention_any": [["Super+U", "Utilities"], ["Screen Recorder", "gpu-screen-recorder"]],
       "must_not_mention": ["OBS is required"],
       "gui_first": true,
-      "ideal": "Pressione Super+Shift+S para abrir a barra de captura Ryoshot e escolha a gravação. O backend de gravação é `gpu-screen-recorder`; qualidade, FPS e codec ficam em Ryoku Settings > Recording. (source: docs/apps.mdx)"
+      "ideal": "No canal estável, pressione Super+U, abra Utilities e escolha Screen Recorder; o backend é `gpu-screen-recorder`, com qualidade, FPS e codec em Ryoku Settings > Recording. No canal instável, Super+Shift+S abre a barra de captura Ryoshot, que também oferece gravação. (source: stable package profile and GUI map; docs/apps.mdx for unstable)"
     },
     "source": "general",
     "verdict_then": null,

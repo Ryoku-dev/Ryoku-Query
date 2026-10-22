@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import os
+import re
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -10,7 +11,7 @@ from dotenv import load_dotenv
 
 from feedback import FeedbackStore, FeedbackView
 from src.agent.runtime import build_index, build_pipeline, build_prowl
-from src.handlers.messages import extract_query, handle_message
+from src.handlers.messages import UserRateLimiter, extract_query, handle_message
 
 
 @dataclass(frozen=True)
@@ -26,11 +27,30 @@ class Config:
     prowl_executable: str
     support_channel_id: int
     help_forum_id: int
+    user_limit_count: int
+    user_limit_seconds: float
     feedback_path: Path
     cloud_enabled: bool
     llm_socket: str
     llm_model: str
     llm_timeout: float
+
+
+def _parse_user_limit(value: str) -> tuple[int, float]:
+    value = value.strip()
+    if value == "0":
+        return 0, 300.0
+
+    match = re.fullmatch(r"(\d+)/(\d+(?:\.\d+)?)", value)
+    if match is None:
+        raise RuntimeError(
+            "NERO_USER_LIMIT must be 0 or use the format <count>/<seconds>"
+        )
+    count = int(match.group(1))
+    seconds = float(match.group(2))
+    if seconds <= 0:
+        raise RuntimeError("NERO_USER_LIMIT seconds must be greater than zero")
+    return count, seconds
 
 
 def load_config() -> Config:
@@ -42,6 +62,9 @@ def load_config() -> Config:
     prowl_limit = int(os.getenv("PROWL_RESULT_LIMIT", "20"))
     support_channel_id = int(os.getenv("SUPPORT_CHANNEL_ID", "0"))
     help_forum_id = int(os.getenv("HELP_FORUM_ID", "0"))
+    user_limit_count, user_limit_seconds = _parse_user_limit(
+        os.getenv("NERO_USER_LIMIT", "6/300")
+    )
     cloud_value = os.getenv("NERO_CLOUD", "1").strip()
     llm_timeout = float(os.getenv("NERO_LLM_TIMEOUT_SECONDS", "25"))
     if not 0.1 <= prowl_timeout <= 30:
@@ -69,6 +92,8 @@ def load_config() -> Config:
         prowl_executable=os.getenv("PROWL_AGENT_PATH", "prowl-agent").strip(),
         support_channel_id=support_channel_id,
         help_forum_id=help_forum_id,
+        user_limit_count=user_limit_count,
+        user_limit_seconds=user_limit_seconds,
         feedback_path=Path(
             os.getenv("FEEDBACK_DB_PATH", "runtime/nero-feedback.sqlite3")
         ),
@@ -87,6 +112,10 @@ def create_client(config: Config) -> discord.Client:
     prowl = build_prowl(config)
     pipeline = build_pipeline(config, index, prowl)
     feedback = FeedbackStore(config.feedback_path)
+    rate_limiter = UserRateLimiter(
+        config.user_limit_count,
+        config.user_limit_seconds,
+    )
     intents = discord.Intents.default()
     intents.message_content = True
     client = discord.Client(intents=intents)
@@ -113,6 +142,7 @@ def create_client(config: Config) -> discord.Client:
             support_channel_id=config.support_channel_id,
             help_forum_id=config.help_forum_id,
             feedback=feedback,
+            rate_limiter=rate_limiter,
         )
 
     return client
@@ -133,6 +163,7 @@ def main() -> None:
 
 __all__ = [
     "Config",
+    "UserRateLimiter",
     "create_client",
     "extract_query",
     "handle_message",

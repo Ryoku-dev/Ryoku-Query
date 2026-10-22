@@ -40,6 +40,14 @@ _FORBIDDEN_OUTPUT = ("rm -rf", "mkfs", "dd if=", "--force", "reset --hard", "pac
 _COMMANDS = frozenset(
     {"ryoku", "ryoku-shell", "ryoku-hub", "ryogami", "ryoku-rashin", "ryostore"}
 )
+_ALWAYS_ALLOWED_COMMANDS = frozenset(
+    {
+        "ryoku doctor",
+        "ryoku doctor --check",
+        "ryoku doctor --report",
+        "ryoku status",
+    }
+)
 _INLINE_CODE = re.compile(r"`([^`\n]+)`")
 _EVIDENCE_CITATION = re.compile(r"\s*\[E\d+\]", re.IGNORECASE)
 _HUB_PATH = re.compile(
@@ -203,6 +211,9 @@ def _model_text_error(
             continue
         if len(words) < 2:
             return f"invalid:command:{command}"
+        normalized_command = " ".join(words).casefold()
+        if normalized_command in _ALWAYS_ALLOWED_COMMANDS:
+            continue
         first_two = normalize_text(" ".join(words[:2]))
         if first_two not in packed_text:
             return f"invalid:command:{command}"

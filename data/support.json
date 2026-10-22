@@ -1,5 +1,49 @@
 [
   {
+    "id": "apps.config-preserved",
+    "title": "Keep Personal App Config Through Updates",
+    "examples": [
+      "will Ryoku overwrite my existing Neovim config?",
+      "does an update reset LazyVim?",
+      "where should I put Kitty custom settings?",
+      "will my Fish aliases survive materialize?",
+      "what does the FILES button show?",
+      "is user_edits safe across updates?",
+      "does Ryoku replace everything under .config?",
+      "¿se conservan mis configuraciones de aplicaciones?"
+    ],
+    "keywords": [
+      "config",
+      "preserve",
+      "neovim",
+      "lazyvim",
+      "kitty",
+      "fish",
+      "materialize",
+      "overrides",
+      "files",
+      "user_edits"
+    ],
+    "exact_terms": [
+      "existing app configs",
+      "FILES button",
+      "kitty/user.conf",
+      "user_edits"
+    ],
+    "answer": "On stable, open the relevant Ryoku Hub page and press **FILES** to see the full user config it writes and the shipped defaults beneath it. Updates and `ryoku materialize` refresh Ryoku-shipped files, not personal additions or files Ryoku never shipped. Put Kitty changes in `~/.config/kitty/user.conf`, Fish changes in `~/.config/fish/user.fish`, Neovim changes in LazyVim's override paths, or whole-file forks under `~/.config/ryoku/user_edits`. Stable has no `ryoku owner`; unstable adds `ryoku owner <path>` to classify a file before editing.",
+    "risk": "informational",
+    "docs_url": "https://docs.ryoku.dev/docs/customize#what-survives-an-update",
+    "source_hints": [
+      "ryoku/cli/internal/updater/materialize.go",
+      "ryoku/hub/quickshell/Hub.qml",
+      "docs/customize.mdx"
+    ],
+    "clarifies_with": [
+      "updates.user-edits",
+      "shell.fish-config"
+    ]
+  },
+  {
     "id": "apps.default-browser",
     "title": "Choose the Browser Opened by Super+B",
     "examples": [
@@ -2183,41 +2227,45 @@
   },
   {
     "id": "install.disk-layout",
-    "title": "Get Past the Installer Disk Layout Step",
+    "title": "Inspect the Installer Disk Layout",
     "examples": [
-      "Tab does nothing on disk layout",
-      "why will the installer not continue to Review",
+      "what should I check on Disk layout?",
+      "what do the boot and root sizes mean?",
+      "will the installer keep my existing partitions?",
+      "why will the installer not continue to Review?",
       "there is a red warning under my partitions",
-      "the alongside layout is blocked",
-      "how do I fix the installer partition screen",
-      "the installer is stuck while validating my partitions",
-      "Review never unlocks after I choose the storage layout"
+      "how can I tell what the layout creates?",
+      "what are snapshots home and backups here?",
+      "the installer hangs on partitioning once I choose a drive",
+      "stuck on the partition screen after picking my disk, what do I look at?"
     ],
     "keywords": [
       "installer",
       "disk",
       "layout",
       "partition",
-      "tab",
-      "warning",
-      "stuck",
-      "continue",
-      "storage",
-      "validation"
+      "boot",
+      "root",
+      "swap",
+      "snapshots",
+      "review",
+      "validation",
+      "partitioning",
+      "stuck"
     ],
     "exact_terms": [
       "Disk layout",
-      "Tab does nothing",
-      "red warning",
+      "boot partition",
+      "root size",
       "layout validation"
     ],
-    "answer": "Read the red warning on the installer's **Disk layout** step. Tab continues only after the layout is safe. Select a shrinkable partition and use Left/Right to make room, or create unallocated space in Windows first. A hibernated or BitLocker-locked Windows volume cannot be shrunk. On a dedicated disk, press Esc and choose **Erase whole disk** instead.",
-    "risk": "destructive",
-    "docs_url": "https://docs.ryoku.dev/docs/troubleshoot#the-installer-wont-advance-past-disk-layout",
+    "answer": "On **Disk layout**, inspect the target-disk bar and the planned boot/ESP, usable root and swap sizes. If installing alongside another system, confirm its existing partitions are marked as kept. Also review the optional Snapshots & rollback, Separate /home and Backups subvolumes. A red message explains why the layout is not yet valid; Tab advances only when it is safe. For the separate erase-a-selected-drive route, see **Install Ryoku on a Dedicated Drive**.",
+    "risk": "informational",
+    "docs_url": "https://docs.ryoku.dev/docs/install#4-boot-the-installer",
     "source_hints": [
-      "installation/tui/",
-      "installation/backend/lib/disk.sh",
-      "docs/dual-boot.mdx"
+      "installation/tui/main.go",
+      "installation/tui/README.md",
+      "docs/install.mdx"
     ],
     "clarifies_with": [
       "install.dual-boot-space",
@@ -2257,6 +2305,45 @@
     "clarifies_with": [
       "install.disk-layout",
       "boot.secure-boot"
+    ]
+  },
+  {
+    "id": "install.try-in-vm",
+    "title": "Try the Installer in a Virtual Machine",
+    "examples": [
+      "does the USB boot a full live desktop?",
+      "can I preview Ryoku without installing?",
+      "what does the ISO show before installation?",
+      "can I test the installer in VirtualBox?",
+      "does the ISO work in VMware?",
+      "how do I safely try Ryoku in QEMU?",
+      "¿puedo probar Ryoku en una máquina virtual?"
+    ],
+    "keywords": [
+      "iso",
+      "usb",
+      "live",
+      "preview",
+      "virtual",
+      "qemu",
+      "virtualbox",
+      "vmware"
+    ],
+    "exact_terms": [
+      "live desktop",
+      "try in a VM",
+      "installer preview"
+    ],
+    "answer": "Booting the stable USB/ISO does not provide a full Ryoku desktop preview. It auto-logs into tty1 and opens a small cage/foot Wayland kiosk running the terminal `ryoku-tui`; the installed desktop appears only after installation and reboot. To inspect the installer safely first, boot the ISO in QEMU/KVM, VirtualBox or VMware with at least 16 GB RAM and a 60 GB virtual disk. Stable and unstable use this installer-only live environment.",
+    "risk": "informational",
+    "docs_url": "https://docs.ryoku.dev/docs/install#3-try-in-a-vm-first-optional",
+    "source_hints": [
+      "installation/README.md",
+      "installation/iso/README.md",
+      "docs/install.mdx"
+    ],
+    "clarifies_with": [
+      "install.choose-route"
     ]
   },
   {
@@ -3869,6 +3956,45 @@
     ]
   },
   {
+    "id": "session.power-actions",
+    "title": "Lock, Log Out, Restart, or Shut Down",
+    "examples": [
+      "how do I shut down Ryoku?",
+      "where is the restart button?",
+      "how can I log out of the desktop?",
+      "what is the lock-screen shortcut?",
+      "do I need a terminal to power off?",
+      "como desligar ou reiniciar o Ryoku?",
+      "¿cómo apagar el equipo o cerrar sesión?",
+      "is it safe to hold the power button?"
+    ],
+    "keywords": [
+      "shutdown",
+      "restart",
+      "reboot",
+      "logout",
+      "lock",
+      "power",
+      "session"
+    ],
+    "exact_terms": [
+      "shut down",
+      "Log out",
+      "Super+L",
+      "Super+Escape"
+    ],
+    "answer": "Press Super+Escape on stable to open **Quick Settings**. Its top row has **Log out**, **Lock**, **Click to reboot**, and **Click to shut down**; click reboot or shutdown once and let the short confirmation fill finish. Super+L locks immediately. You do not need a terminal or to hold the computer's physical power button. On unstable, Super+Escape opens **Controls**; its bottom-bar labels are Lock, Sleep, Log out, Restart and Power off, and those buttons are hold-to-activate.",
+    "risk": "state-changing",
+    "docs_url": null,
+    "source_hints": [
+      "ryoku/shell/quickshell/shell/modules/bar/framebars/menus/quicksettings/QuickSettingsHome.qml",
+      "ryoku/shell/quickshell/shell/modules/bar/framebars/menus/QsHoldButton.qml",
+      "ryoku/wm/binds.go",
+      "docs/sidebars.md"
+    ],
+    "clarifies_with": []
+  },
+  {
     "id": "shell.bar-style",
     "title": "Switch the Ryoku Bar Style",
     "examples": [
@@ -4594,12 +4720,14 @@
       "Interface scale",
       "Region & fonts"
     ],
-    "answer": "On stable use `Ryoku Hub > General > System font` and **Font size**. On unstable those controls are under `Ryoku Hub > General > Region & fonts`, with separate **Terminal font** and **Interface scale** controls. Interface scale enlarges shell surfaces such as the bar and launcher without changing display scale. Missing CJK glyphs should fall back to Noto; if they remain blank after an update, run `ryoku doctor --check` before changing fonts.",
+    "answer": "On stable use `Ryoku Hub > General > System font` and **Font size**. The documented families are Fraunces for display text, Space Grotesk for UI, JetBrains Mono Nerd Font for code and labels, and Noto for fallback/CJK; stable's configurable default is Space Grotesk, with SpaceMono Nerd Font as its mono/terminal fallback. On unstable the controls move to `Ryoku Hub > General > Region & fonts`, with separate **Terminal font** and **Interface scale**. Missing CJK glyphs should fall back to Noto.",
     "risk": "state-changing",
-    "docs_url": "https://docs.ryoku.dev/docs/settings#overview",
+    "docs_url": "https://docs.ryoku.dev/docs/theming#the-fixed-brand",
     "source_hints": [
       "ryoku/hub/quickshell/schema/GlobalPage.js",
-      "ryoku/ui/Singletons/Tokens.qml"
+      "ryoku/ui/Singletons/Tokens.qml",
+      "ryoku/shell/quickshell/shell/services/Config.qml",
+      "docs/theming.mdx"
     ],
     "clarifies_with": [
       "bar.qs-settings"
@@ -4819,7 +4947,7 @@
       "ryoku update",
       "ryoku update --system"
     ],
-    "answer": "Open `Ryoku Hub > Updates` and choose `Update now`; the terminal equivalent is `ryoku update`. That lane updates Ryoku packages, materializes config, runs Doctor, reloads the shell, and takes snapshots where supported, but leaves distro packages and the kernel alone. Use `ryoku update --system` to run the Ryoku and base-system lanes under one snapshot pair. Stable and unstable use the same actions; the selected channel decides which Ryoku packages arrive.",
+    "answer": "Open `Ryoku Hub > Updates` and choose `Update now`; the terminal equivalent is `ryoku update`. Run exactly `ryoku update`: words appended after it are passed on as package names. That lane updates Ryoku packages, materializes config, runs Doctor, reloads the shell, and takes snapshots where supported, but leaves distro packages and the kernel alone. Use `ryoku update --system` to run the Ryoku and base-system lanes under one snapshot pair. Stable and unstable use the same actions.",
     "risk": "state-changing",
     "docs_url": "https://docs.ryoku.dev/docs/updates#two-lanes",
     "source_hints": [
@@ -5397,6 +5525,8 @@
     "title": "Place or Style Apps with Window Rules",
     "examples": [
       "make Kitty always open floating",
+      "make Files or Nautilus always open tiled",
+      "force my browser to open floating",
       "send Discord to a specific workspace",
       "why does my rule not match Spotify",
       "where is the window rule editor",
@@ -5410,14 +5540,18 @@
       "title",
       "workspace",
       "float",
+      "tile",
+      "nautilus",
+      "browser",
       "opacity"
     ],
     "exact_terms": [
       "Window Rules > Rule editor",
       "window class",
-      "app id"
+      "always open tiled",
+      "always open floating"
     ],
-    "answer": "Turn on Advanced in Ryoku Hub, then open Window Rules > Rule editor. Match the real app id/class or title—not its friendly menu name—then choose one supported action, such as float, workspace or opacity. Stable exposes the editor for Hyprland and niri. Unstable Wayfire supports a provider-specific subset and reports actions it cannot express instead of silently applying them. Use App Overrides for per-app appearance rather than placement.",
+    "answer": "Turn on Advanced, then open `Ryoku Hub > Window Rules > Rule editor` on stable. Match the real app id/class or title, not its friendly menu name. For Files/Nautilus, match `org.gnome.Nautilus` and choose **Tile** or **Float**; for a browser, match its real id such as `firefox` and choose **Tile** or **Float**. Each rule applies one action, so add another for workspace or opacity. Stable supports Hyprland and niri. Unstable also exposes Wayfire's provider-specific subset. Use App Overrides for appearance, not placement.",
     "risk": "state-changing",
     "docs_url": "https://docs.ryoku.dev/docs/settings#compositor",
     "source_hints": [
