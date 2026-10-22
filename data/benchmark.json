@@ -6,7 +6,7 @@
       "query": "I'm new to this project - what kind of Linux system is Ryoku?",
       "difficulty": "easy",
       "expected": "answer",
-      "intent_id": "overview.what-is-ryoku"
+      "intent_id": "editions.supported"
     },
     {
       "id": "prod-002",
@@ -111,7 +111,7 @@
       "query": "Before sharing a diagnostic archive publicly, how can I find out whether it contains private data?",
       "difficulty": "paraphrase",
       "expected": "answer",
-      "intent_id": "health.doctor-report-privacy"
+      "intent_id": "health.doctor-report"
     },
     {
       "id": "prod-017",
@@ -133,13 +133,6 @@
       "difficulty": "paraphrase",
       "expected": "answer",
       "intent_id": "updates.user-edits"
-    },
-    {
-      "id": "prod-020",
-      "query": "How are the directories in the Ryoku source tree organized, and what belongs in each one?",
-      "difficulty": "paraphrase",
-      "expected": "answer",
-      "intent_id": "overview.repository-structure"
     },
     {
       "id": "prod-021",

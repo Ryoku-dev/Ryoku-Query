@@ -1,0 +1,982 @@
+[
+  {
+    "id": "real.rashin.first-setup",
+    "question": "Como configuro o Rashin pela primeira vez?",
+    "history": [],
+    "expect": {
+      "must_mention_any": [["Ryoku Settings", "Rashin"], ["Hermes", "ryoku-rashin setup"]],
+      "must_not_mention": ["sudo ryoku-rashin"],
+      "gui_first": true,
+      "ideal": "Abra Ryoku Settings com Super+vírgula, entre em Rashin e use Set up Hermes agent. O assistente instala ou mantém o Hermes, faz o onboarding do provedor/modelo, conecta o vault e ativa o daemon; no terminal, o equivalente é `ryoku-rashin setup`, sem sudo. (source: docs/rashin.mdx)"
+    },
+    "source": "nero-exchange",
+    "verdict_then": "incorrect",
+    "lang": "pt"
+  },
+  {
+    "id": "real.config.safe-files",
+    "question": "Where should my lasting config changes go?",
+    "history": [],
+    "expect": {
+      "must_mention_any": [["user.lua", "user.kdl", "user_edits"], ["survive", "never touched"]],
+      "must_not_mention": ["~/.config/quickshell", "/usr/share/ryoku/config"],
+      "gui_first": true,
+      "ideal": "Use Ryoku Settings for covered options. For hand edits, use the update-safe files such as `~/.config/hypr/user.lua`, `~/.config/niri/user.kdl`, or a mirrored file under `~/.config/ryoku/user_edits/`; do not edit Ryoku-shipped files in place. (source: docs/customize.mdx)"
+    },
+    "source": "nero-exchange",
+    "verdict_then": "partially_correct",
+    "lang": "en"
+  },
+  {
+    "id": "real.gpu.passthrough",
+    "question": "¿Dónde preparo la GPU para passthrough?",
+    "history": [],
+    "expect": {
+      "must_mention_any": [["Graphics & Power", "Gráficos"], ["Passthrough", "integrated GPU"]],
+      "must_not_mention": ["disable both GPUs"],
+      "gui_first": true,
+      "ideal": "Abre Ryoku Settings > Graphics & Power y elige el modo Passthrough. Ese modo fija la GPU integrada para el escritorio y deja libre la GPU discreta para la máquina virtual; el cambio de GPU se aplica al volver a iniciar sesión. La página no sustituye la configuración de IOMMU, VFIO ni de la VM. (source: docs/hardware.mdx)"
+    },
+    "source": "nero-exchange",
+    "verdict_then": "incorrect",
+    "lang": "es"
+  },
+  {
+    "id": "real.doctor.use",
+    "question": "What is Ryoku Doctor actually for?",
+    "history": [],
+    "expect": {
+      "must_mention_any": [["ryoku doctor --check", "doctor --check"], ["read-only", "without changing"]],
+      "must_not_mention": ["rm -rf"],
+      "gui_first": false,
+      "ideal": "`ryoku doctor` checks and reconciles stateful drift that packages and config cannot express. Start with `ryoku doctor --check` for a no-change preview; use `ryoku doctor --report` when you need a shareable diagnostic report. (source: docs/cli.md)"
+    },
+    "source": "nero-exchange",
+    "verdict_then": "none",
+    "lang": "en"
+  },
+  {
+    "id": "real.display.persistent-settings",
+    "question": "Where do display changes survive updates?",
+    "history": [],
+    "expect": {
+      "must_mention_any": [["Ryoku Settings > Displays", "Settings > Displays"], ["monitors_user.lua", "monitors_user.kdl"]],
+      "must_not_mention": ["~/.config/quickshell", "edit monitors.lua"],
+      "gui_first": true,
+      "ideal": "Use Ryoku Settings > Displays for normal layouts; its generated per-machine monitor file is not reset by `ryoku update`. For a forced mode or layout the page cannot express, put the override in `monitors_user.lua` on Hyprland or `monitors_user.kdl` on niri, which loads last and survives updates. (source: docs/customize.mdx)"
+    },
+    "source": "nero-exchange",
+    "verdict_then": "incorrect",
+    "lang": "en"
+  },
+  {
+    "id": "real.widgets.add-custom",
+    "question": "How can I place another desktop widget?",
+    "history": [],
+    "expect": {
+      "must_mention_any": [["right-click", "Edit desktop"], ["add a widget", "widget"]],
+      "must_not_mention": ["~/.config/quickshell"],
+      "gui_first": true,
+      "ideal": "Right-click the wallpaper, choose Edit desktop, add the widget, then drag and resize it there. Each widget's right-click menu exposes its own settings; additional widgets can come from Ryostore. (source: docs/faq.mdx)"
+    },
+    "source": "nero-exchange",
+    "verdict_then": "none",
+    "lang": "en"
+  },
+  {
+    "id": "real.launcher.font",
+    "question": "Which setting changes the launcher's typeface?",
+    "history": [],
+    "expect": {
+      "must_mention_any": [["Ryoku Settings > General", "General"], ["System font", "font"]],
+      "must_not_mention": ["edit the launcher QML"],
+      "gui_first": true,
+      "ideal": "Open Ryoku Settings > General and change System font; the system font is used by the shell, including the launcher. On unstable-dev this control is grouped under General > Region & fonts. (source: ryoku/hub/quickshell/schema/GlobalPage.js)"
+    },
+    "source": "nero-exchange",
+    "verdict_then": "incorrect",
+    "lang": "en"
+  },
+  {
+    "id": "real.theme.ryoku-fonts",
+    "question": "What font family does Ryoku use?",
+    "history": [],
+    "expect": {
+      "must_mention_any": [["Fraunces"], ["Space Grotesk"], ["JetBrains Mono"]],
+      "must_not_mention": [],
+      "gui_first": true,
+      "ideal": "Ryoku's defaults are Fraunces for display headlines, Space Grotesk for UI, JetBrains Mono Nerd Font for code and labels, and Noto as the fallback. The user-facing system font is changed in Ryoku Settings > General. (source: docs/theming.mdx)"
+    },
+    "source": "nero-exchange",
+    "verdict_then": "none",
+    "lang": "en"
+  },
+  {
+    "id": "real.update.track-unstable",
+    "question": "How do I join the testing channel?",
+    "history": [],
+    "expect": {
+      "must_mention_any": [["Ryoku Settings > Updates", "Updates"], ["ryoku track unstable"]],
+      "must_not_mention": ["git checkout unstable-dev"],
+      "gui_first": true,
+      "ideal": "Use the channel control in Ryoku Settings > Updates, or run `ryoku track unstable`, then update normally. Stable follows named releases; unstable follows the last unstable-dev commit that passed the Testing gate. On current unstable-dev the source lane lives under `~/ryoku-arch`, and status also reports build/check gate state. (source: docs/updates.mdx)"
+    },
+    "source": "nero-exchange",
+    "verdict_then": "none",
+    "lang": "en"
+  },
+  {
+    "id": "real.window.hide",
+    "question": "Can I hide a window without closing it?",
+    "history": [],
+    "expect": {
+      "must_mention_any": [["Super+H", "Mod + H"], ["scratchpad"]],
+      "must_not_mention": ["Alt+F4"],
+      "gui_first": true,
+      "ideal": "Press Super+H to tuck the focused window into the scratchpad. Super+Alt+H shows or hides the scratchpad; this is Ryoku's hide/minimize-style workflow and does not close the app. (source: docs/keybindings.mdx)"
+    },
+    "source": "nero-exchange",
+    "verdict_then": "none",
+    "lang": "en"
+  },
+  {
+    "id": "real.apps.default-browser",
+    "question": "Where do I replace the browser shortcut target?",
+    "history": [],
+    "expect": {
+      "must_mention_any": [["Ryoku Settings > Keybinds", "Keybinds"], ["browser", "role"]],
+      "must_not_mention": ["edit binds.lua"],
+      "gui_first": true,
+      "ideal": "Open Ryoku Settings > Keybinds and change the Browser role. Super+B and other browser actions use whichever app that role points to. (source: docs/apps.mdx)"
+    },
+    "source": "nero-exchange",
+    "verdict_then": "none",
+    "lang": "en"
+  },
+  {
+    "id": "real.apps.ryotunes",
+    "question": "What's Ryotunes meant to do?",
+    "history": [],
+    "expect": {
+      "must_mention_any": [["music", "player"], ["Super+J", "Mod + J"]],
+      "must_not_mention": ["Spotify client replacement only"],
+      "gui_first": true,
+      "ideal": "Ryotunes is Ryoku's music app. Open or focus it with Super+J; its playback is exposed through the normal media keys and MPRIS-aware desktop widgets, and it updates from its own releases. (source: docs/apps.mdx)"
+    },
+    "source": "nero-exchange",
+    "verdict_then": "none",
+    "lang": "en"
+  },
+  {
+    "id": "real.config.user-lua",
+    "question": "Will an update erase hypr/user.lua?",
+    "history": [],
+    "expect": {
+      "must_mention_any": [["never touched", "survive", "not"], ["user.lua"]],
+      "must_not_mention": ["move it into ~/.config/quickshell"],
+      "gui_first": false,
+      "ideal": "No. `~/.config/hypr/user.lua` is the Hyprland user override, loads last, and is seeded once rather than overwritten by materialize or updates. Shipped base files are the ones that get re-laid. (source: docs/customize.mdx)"
+    },
+    "source": "nero-exchange",
+    "verdict_then": "partially_correct",
+    "lang": "en"
+  },
+  {
+    "id": "real.apps.ryoport",
+    "question": "What job does Ryoport handle?",
+    "history": [],
+    "expect": {
+      "must_mention_any": [["virtual machines", "VMs"], ["SSH", "serial"]],
+      "must_not_mention": ["wallpaper"],
+      "gui_first": true,
+      "ideal": "Ryoport is Ryoku's dashboard for virtual machines, SSH hosts, and serial consoles. Super+Shift+V brings its VM window to the current workspace. (source: docs/apps.mdx)"
+    },
+    "source": "nero-exchange",
+    "verdict_then": "incorrect",
+    "lang": "en"
+  },
+  {
+    "id": "real.session.lock-command",
+    "question": "What's the supported way to lock now?",
+    "history": [],
+    "expect": {
+      "must_mention_any": [["Super+L", "Mod + L"]],
+      "must_not_mention": ["loginctl terminate-user"],
+      "gui_first": true,
+      "ideal": "Press Super+L to lock the screen. That shared binding works on the supported window managers and uses Ryoku's configured lock surface. (source: docs/keybindings.mdx)"
+    },
+    "source": "nero-exchange",
+    "verdict_then": "none",
+    "lang": "en"
+  },
+  {
+    "id": "real.keybinds.kit",
+    "question": "Onde vejo todos os atalhos atuais?",
+    "history": [],
+    "expect": {
+      "must_mention_any": [["Super+K", "Mod + K"], ["Kit"]],
+      "must_not_mention": ["binds.lua"],
+      "gui_first": true,
+      "ideal": "Pressione Super+K para abrir o Kit. Ele mostra a lista ativa da sua máquina, inclusive suas próprias alterações, e o mesmo atalho fecha a tela. (source: docs/keybindings.mdx)"
+    },
+    "source": "nero-exchange",
+    "verdict_then": "incorrect",
+    "lang": "pt"
+  },
+  {
+    "id": "real.plugins.definition",
+    "question": "What counts as a Ryoku plugin?",
+    "history": [],
+    "expect": {
+      "must_mention_any": [["widget", "shell plugin"], ["Ryostore", "ryoku plugin"]],
+      "must_not_mention": ["Hyprland plugin only"],
+      "gui_first": true,
+      "ideal": "A Ryoku shell plugin is an installable widget or surface with a validated manifest, placed through Ryostore or `ryoku plugin add`. Installed plugins are managed on Ryoku Settings > Add-ons; they run with your user permissions, so install only trusted code. (source: docs/cli.md)"
+    },
+    "source": "nero-exchange",
+    "verdict_then": "correct",
+    "lang": "en"
+  },
+  {
+    "id": "real.window.overview",
+    "question": "How do I open the workspace overview?",
+    "history": [],
+    "expect": {
+      "must_mention_any": [["Super+Tab", "Mod + Tab"], ["drag", "move"]],
+      "must_not_mention": ["Super+Space"],
+      "gui_first": true,
+      "ideal": "Press Super+Tab for the workspace overview. It shows live previews and lets you drag windows between workspaces; Super+Alt+Tab steps through overview blocks by desktop. (source: docs/keybindings.mdx)"
+    },
+    "source": "nero-exchange",
+    "verdict_then": "incorrect",
+    "lang": "en"
+  },
+  {
+    "id": "real.window.close",
+    "question": "What's Ryoku's equivalent of Alt+F4?",
+    "history": [],
+    "expect": {
+      "must_mention_any": [["Super+Q", "Mod + Q"], ["focused window"]],
+      "must_not_mention": ["Super+Space"],
+      "gui_first": true,
+      "ideal": "Press Super+Q to close the focused window. That is the normal close action; force-killing a process is a separate troubleshooting step, not the default window shortcut. (source: docs/keybindings.mdx)"
+    },
+    "source": "nero-exchange",
+    "verdict_then": "incorrect",
+    "lang": "en"
+  },
+  {
+    "id": "real.apps.default-terminal",
+    "question": "¿Cómo cambio la aplicación de terminal predeterminada?",
+    "history": [],
+    "expect": {
+      "must_mention_any": [["Ryoku Settings > Keybinds", "Keybinds"], ["Terminal", "role"]],
+      "must_not_mention": ["edit binds.lua"],
+      "gui_first": true,
+      "ideal": "Abre Ryoku Settings > Keybinds y cambia el rol Terminal. Super+Enter abre la aplicación asignada a ese rol, así que no hace falta editar los atajos del compositor. (source: docs/apps.mdx)"
+    },
+    "source": "nero-exchange",
+    "verdict_then": "incorrect",
+    "lang": "es"
+  },
+  {
+    "id": "real.support.report-bug",
+    "question": "What should I include in a bug report?",
+    "history": [],
+    "expect": {
+      "must_mention_any": [["ryoku status"], ["ryoku doctor --report", "doctor-report.txt"], ["log"]],
+      "must_not_mention": ["password", "API key"],
+      "gui_first": false,
+      "ideal": "Include the exact actions, what happened, what you expected, `ryoku status`, a fresh `ryoku doctor --report`, and the relevant log slice. For shell issues, attach the last lines of `~/.local/state/ryoku-shell.log` after a reload; the doctor report is designed not to contain passwords or keys. (source: docs/troubleshoot.mdx)"
+    },
+    "source": "nero-exchange",
+    "verdict_then": "none",
+    "lang": "en"
+  },
+  {
+    "id": "real.support.read-logs",
+    "question": "Fish won't open these report paths; why?",
+    "history": [],
+    "expect": {
+      "must_mention_any": [["text files", "file"], ["doctor-report.txt"], ["ryoku-shell.log"]],
+      "must_not_mention": ["chmod +x"],
+      "gui_first": false,
+      "ideal": "Those paths name text files, not commands. Read them with a viewer such as `less ~/.local/state/ryoku/doctor-report.txt` and `less ~/.local/state/ryoku-shell.log`; regenerate the report with `ryoku doctor --report` if needed. (source: docs/troubleshoot.mdx)"
+    },
+    "source": "nero-exchange",
+    "verdict_then": "incorrect",
+    "lang": "en"
+  },
+  {
+    "id": "real.theme.appearance",
+    "question": "Where did the appearance controls move?",
+    "history": [],
+    "expect": {
+      "must_mention_any": [["Super+W", "Mod + W"], ["Shift+S", "Theme"]],
+      "must_not_mention": ["launcher settings"],
+      "gui_first": true,
+      "ideal": "Wallpaper, palette, theme, and rice controls are in Ryogami rather than a Hub Appearance page. Press Super+W, then Shift+S for the picker's settings and open Theme; window look such as gaps, blur, and borders remains under Ryoku Settings > Window manager. (source: docs/theming.mdx)"
+    },
+    "source": "nero-exchange",
+    "verdict_then": "incorrect",
+    "lang": "en"
+  },
+  {
+    "id": "real.dock.animations",
+    "question": "Is there a separate dock animation switch?",
+    "history": [],
+    "expect": {
+      "must_mention_any": [["QS Bar Settings > Dock", "bar settings dock"], ["no", "not"]],
+      "must_not_mention": ["~/.config/quickshell"],
+      "gui_first": true,
+      "ideal": "Open QS Bar Settings > Dock for the dock controls. Current stable exposes show/hide, edge, autohide, and pins, but not a separate dock-animation toggle; desktop motion is controlled by the general Animations setting. (source: ryoku/rashin/skills/ryoku/bar.md)"
+    },
+    "source": "nero-exchange",
+    "verdict_then": "incorrect",
+    "lang": "en"
+  },
+  {
+    "id": "real.theme.apply-rice",
+    "question": "Where are downloaded rices applied now?",
+    "history": [],
+    "expect": {
+      "must_mention_any": [["Super+W", "wallpaper picker"], ["Rices"]],
+      "must_not_mention": ["Ryoku Hub > Appearance"],
+      "gui_first": true,
+      "ideal": "Open the wallpaper picker with Super+W and use its Rices tab. Applying a rice snapshots the current setup first, and the same tab handles import, export, and saved looks. (source: docs/theming.mdx)"
+    },
+    "source": "nero-exchange",
+    "verdict_then": "incorrect",
+    "lang": "en"
+  },
+  {
+    "id": "real.theme.catppuccin",
+    "question": "Where can I select Catppuccin now?",
+    "history": [],
+    "expect": {
+      "must_mention_any": [["Super+W", "wallpaper picker"], ["Fixed palette"], ["Catppuccin"]],
+      "must_not_mention": ["edit colors.json"],
+      "gui_first": true,
+      "ideal": "Press Super+W, then Shift+S, open Theme, set Palette behaviour to Fixed palette, and choose Catppuccin Mocha under Palette > Theme. Switch back to Follow wallpaper when you want wallpaper-derived colors again. (source: docs/theming.mdx)"
+    },
+    "source": "nero-exchange",
+    "verdict_then": "partially_correct",
+    "lang": "en"
+  },
+  {
+    "id": "real.rashin.what-is",
+    "question": "What does Rashin add to the desktop?",
+    "history": [],
+    "expect": {
+      "must_mention_any": [["AI agent"], ["Alt+Space", "Alt + Space"], ["vault"]],
+      "must_not_mention": ["cloud-only"],
+      "gui_first": true,
+      "ideal": "Rashin is Ryoku's local AI agent layer: Alt+Space opens quick Ask, Super+Alt+Space opens the longer Agent/Rashin window, and its on-disk knowledge vault maps your machine for agents. Hermes is the harness and model/provider setup behind it. (source: docs/rashin.mdx)"
+    },
+    "source": "nero-exchange",
+    "verdict_then": "incorrect",
+    "lang": "en"
+  },
+  {
+    "id": "real.display.fullscreen-vrr",
+    "question": "Can adaptive sync run only fullscreen?",
+    "history": [],
+    "expect": {
+      "must_mention_any": [["Ryoku Settings > Displays", "Displays"], ["Adaptive sync", "VRR"], ["Fullscreen only"]],
+      "must_not_mention": ["edit monitors.lua"],
+      "gui_first": true,
+      "ideal": "Yes. Open Ryoku Settings > Displays, select the monitor, and set Adaptive sync to Fullscreen only. Use the offered mode rather than editing the generated monitor file. (source: ryoku/hub/quickshell/schema/DisplaysPage.js)"
+    },
+    "source": "nero-exchange",
+    "verdict_then": "incorrect",
+    "lang": "en"
+  },
+  {
+    "id": "real.display.single-monitor",
+    "question": "¿Cómo dejo activa solamente una pantalla?",
+    "history": [],
+    "expect": {
+      "must_mention_any": [["Ryoku Settings > Displays", "Displays"], ["Super+P", "Mod+P"]],
+      "must_not_mention": ["delete monitors.lua"],
+      "gui_first": true,
+      "ideal": "Abre Ryoku Settings > Displays para elegir qué salidas quedan activas. Para cambiar rápido, Super+P alterna entre pantalla interna, externa y ambas; los cambios guardados no se borran con una actualización. (source: docs/hardware.mdx)"
+    },
+    "source": "nero-exchange",
+    "verdict_then": "incorrect",
+    "lang": "es"
+  },
+  {
+    "id": "real.input.numlock",
+    "question": "Can Num Lock start enabled every session?",
+    "history": [],
+    "expect": {
+      "must_mention_any": [["Ryoku Settings > Input", "Input"], ["Numlock on at login", "Num Lock"]],
+      "must_not_mention": ["xmodmap"],
+      "gui_first": true,
+      "ideal": "Yes. Open Ryoku Settings > Input and enable Numlock on at login; it starts each session with the keypad typing digits. (source: ryoku/hub/quickshell/schema/InputPage.js)"
+    },
+    "source": "nero-exchange",
+    "verdict_then": "incorrect",
+    "lang": "en"
+  },
+  {
+    "id": "real.snapshots.cleanup-failure",
+    "question": "How do I clear a Snapper cleanup warning?",
+    "history": [],
+    "expect": {
+      "must_mention_any": [["ryoku doctor --check", "doctor --check"], ["btrfs", "snapper"]],
+      "must_not_mention": ["rm -rf /.snapshots"],
+      "gui_first": false,
+      "ideal": "Run `ryoku doctor --check` first. On a btrfs root, Doctor can recreate a missing Snapper root config, fix `/.snapshots` ownership, and enable the cleanup timer; if the root is not btrfs, Ryoku snapshots are unavailable and updates continue without them. (source: docs/troubleshoot.mdx)"
+    },
+    "source": "help-thread",
+    "verdict_then": null,
+    "lang": "en"
+  },
+  {
+    "id": "real.config.hypr-overrides",
+    "question": "Why did my Hyprland edits vanish again?",
+    "history": [],
+    "expect": {
+      "must_mention_any": [["user.lua", "user_edits"], ["shipped", "materialize"]],
+      "must_not_mention": ["~/.config/quickshell", "edit settings.lua"],
+      "gui_first": false,
+      "ideal": "Edits to Ryoku-shipped files are replaced by `ryoku materialize`. Put lasting Hyprland changes in `~/.config/hypr/user.lua` or a mirrored file under `~/.config/ryoku/user_edits/`; `user.lua` loads last and updates do not touch it. (source: docs/customize.mdx)"
+    },
+    "source": "help-thread",
+    "verdict_then": null,
+    "lang": "en"
+  },
+  {
+    "id": "real.bar.rearrange-widgets",
+    "question": "How can I reorder the top-bar items?",
+    "history": [],
+    "expect": {
+      "must_mention_any": [["QS Bar Settings > Layout", "bar settings layout"], ["left", "center", "right"]],
+      "must_not_mention": ["edit shell.json"],
+      "gui_first": true,
+      "ideal": "Open QS Bar Settings > Layout and move widgets among the left, center, and right lanes. For scripting, `ryoku-shell bar move <id> --section <lane>` reaches the same daemon-owned layout; do not hand-edit `shell.json`. (source: ryoku/rashin/skills/ryoku/bar.md)"
+    },
+    "source": "help-thread",
+    "verdict_then": null,
+    "lang": "en"
+  },
+  {
+    "id": "real.input.focus-under-pointer",
+    "question": "Can windows focus when I hover them?",
+    "history": [],
+    "expect": {
+      "must_mention_any": [["Ryoku Settings > Input", "Input"], ["Focus under pointer", "Focus behavior"]],
+      "must_not_mention": ["hyprctl keyword input:follow_mouse"],
+      "gui_first": true,
+      "ideal": "Open Ryoku Settings > Input, find Focus behavior, and choose Focus under pointer. The same control is available for supported compositors, so no compositor file edit is needed. (source: ryoku/hub/quickshell/schema/InputPage.js)"
+    },
+    "source": "help-thread",
+    "verdict_then": null,
+    "lang": "en"
+  },
+  {
+    "id": "real.display.logical-scale",
+    "question": "Why does my display look low-resolution?",
+    "history": [],
+    "expect": {
+      "must_mention_any": [["Ryoku Settings > Displays", "Displays"], ["scale", "native resolution"]],
+      "must_not_mention": ["xrandr"],
+      "gui_first": true,
+      "ideal": "Check Ryoku Settings > Displays. Laptop panels normally expose only their native mode, so use the scale choices for the desired logical desktop size; if Apply rejects a value, choose one of the offered clean-divisor scales. (source: docs/hardware.mdx)"
+    },
+    "source": "help-thread",
+    "verdict_then": null,
+    "lang": "en"
+  },
+  {
+    "id": "real.update.missing-repository",
+    "question": "Doctor says my Ryoku repository is missing.",
+    "history": [],
+    "expect": {
+      "must_mention_any": [["ryoku doctor --check", "doctor --check"], ["package channel", "repository"]],
+      "must_not_mention": ["paste a random pacman.conf"],
+      "gui_first": false,
+      "ideal": "Run `ryoku doctor --check` to preview the package-channel finding, then `ryoku doctor` to let the registered reconciler repair supported channel and keyring drift. Do not copy an unverified repository stanza from chat. (source: docs/cli.md)"
+    },
+    "source": "help-thread",
+    "verdict_then": null,
+    "lang": "en"
+  },
+  {
+    "id": "real.apps.preserve-neovim",
+    "question": "Will Ryoku overwrite my existing Neovim setup?",
+    "history": [],
+    "expect": {
+      "must_mention_any": [["Neovim", "nvim"], ["override", "own"]],
+      "must_not_mention": ["rm -rf ~/.config/nvim"],
+      "gui_first": false,
+      "ideal": "Ryoku's update-safe model leaves your own additions and the app's supported override paths alone. For Neovim, keep personal changes in LazyVim's own override paths rather than modifying a Ryoku-shipped base file; materialize only clobbers files Ryoku ships. (source: docs/customize.mdx)"
+    },
+    "source": "help-thread",
+    "verdict_then": null,
+    "lang": "en"
+  },
+  {
+    "id": "real.input.natural-scroll",
+    "question": "Como inverto a rolagem do touchpad?",
+    "history": [],
+    "expect": {
+      "must_mention_any": [["Ryoku Settings > Input", "Input"], ["Natural scroll", "rolagem natural"]],
+      "must_not_mention": ["libinput config file"],
+      "gui_first": true,
+      "ideal": "Abra Ryoku Settings > Input e altere Natural scroll na seção do touchpad. A opção faz o conteúdo acompanhar os dois dedos e é aplicada pela configuração do compositor ativo. (source: ryoku/hub/quickshell/schema/InputPage.js)"
+    },
+    "source": "help-thread",
+    "verdict_then": null,
+    "lang": "pt"
+  },
+  {
+    "id": "real.window.close-vs-hide",
+    "question": "How do closing and minimizing differ here?",
+    "history": [],
+    "expect": {
+      "must_mention_any": [["Super+Q", "Mod + Q"], ["Super+H", "Mod + H"]],
+      "must_not_mention": ["Alt+F4 is required"],
+      "gui_first": true,
+      "ideal": "Super+Q closes the focused window. Ryoku's minimize-like action is Super+H, which tucks it into the scratchpad; Super+Alt+H shows or hides that scratchpad. (source: docs/keybindings.mdx)"
+    },
+    "source": "help-thread",
+    "verdict_then": null,
+    "lang": "en"
+  },
+  {
+    "id": "real.update.command-syntax",
+    "question": "Why did update treat my note as packages?",
+    "history": [],
+    "expect": {
+      "must_mention_any": [["Ryoku Settings > Updates", "Updates"], ["ryoku update"]],
+      "must_not_mention": ["append prose", "package names after"],
+      "gui_first": true,
+      "ideal": "Use Update now in Ryoku Settings > Updates, or run exactly `ryoku update`. Do not append explanatory words from a support message to a package-manager command; the shell passes them as package names. (source: docs/updates.mdx)"
+    },
+    "source": "help-thread",
+    "verdict_then": null,
+    "lang": "en"
+  },
+  {
+    "id": "real.apps.nautilus-tile",
+    "question": "How can Files always open tiled?",
+    "history": [],
+    "expect": {
+      "must_mention_any": [["Ryoku Settings > Window Rules", "Window Rules"], ["tile", "Rule editor"]],
+      "must_not_mention": ["edit shipped window_rules"],
+      "gui_first": true,
+      "ideal": "Enable Advanced in Ryoku Settings, open Window Rules, add a rule matching Nautilus by class or title, and choose the tile action. For a one-off window, Super+A toggles floating back to tiled. (source: ryoku/hub/quickshell/schema/WindowRulesPage.js)"
+    },
+    "source": "help-thread",
+    "verdict_then": null,
+    "lang": "en"
+  },
+  {
+    "id": "real.wallpaper.depth-control",
+    "question": "Where is the wallpaper depth control now?",
+    "history": [],
+    "expect": {
+      "must_mention_any": [["right-click", "Edit desktop"], ["depth"]],
+      "must_not_mention": ["Ryoku Hub > Widgets"],
+      "gui_first": true,
+      "ideal": "Right-click the wallpaper and choose Edit desktop. Depth, parallax, desktop widgets, and the visualizer are arranged on the desktop itself rather than on a Hub page. (source: docs/settings.mdx)"
+    },
+    "source": "help-thread",
+    "verdict_then": null,
+    "lang": "en"
+  },
+  {
+    "id": "real.theme.no-appearance-page",
+    "question": "Why can't I find Appearance in Settings?",
+    "history": [],
+    "expect": {
+      "must_mention_any": [["Super+W", "wallpaper picker"], ["Theme"]],
+      "must_not_mention": ["reinstall the Hub"],
+      "gui_first": true,
+      "ideal": "There is no general Appearance page for wallpaper colors and rices. Open Ryogami with Super+W, then Shift+S for Theme; compositor look such as blur, gaps, and borders is under Ryoku Settings > Window manager. (source: docs/settings.mdx)"
+    },
+    "source": "help-thread",
+    "verdict_then": null,
+    "lang": "en"
+  },
+  {
+    "id": "real.config.custom-gestures",
+    "question": "Where should persistent custom gestures live?",
+    "history": [],
+    "expect": {
+      "must_mention_any": [["user.lua", "user.kdl"], ["loads last", "survive"]],
+      "must_not_mention": ["settings.lua", "rebinds.kdl"],
+      "gui_first": false,
+      "ideal": "If the Input page does not cover the gesture, put the compositor-specific override in `~/.config/hypr/user.lua` or `~/.config/niri/user.kdl`. Those files load last and are never touched by updates; generated settings and rebind files are not safe hand-edit targets. (source: docs/customize.mdx)"
+    },
+    "source": "help-thread",
+    "verdict_then": null,
+    "lang": "en"
+  },
+  {
+    "id": "real.visualizer.toggle-bottom-line",
+    "question": "How do I remove the audio-reactive line?",
+    "history": [],
+    "expect": {
+      "must_mention_any": [["Super+M", "Mod + M"], ["visualizer", "visualiser"]],
+      "must_not_mention": ["kill cava permanently"],
+      "gui_first": true,
+      "ideal": "Press Super+M to toggle the desktop audio visualizer. Its richer placement and style controls are available while editing the desktop; Super+Shift+M only changes whether it sits over windows. (source: docs/keybindings.mdx)"
+    },
+    "source": "help-thread",
+    "verdict_then": null,
+    "lang": "en"
+  },
+  {
+    "id": "real.apps.removed-stays-removed",
+    "question": "Will Doctor reinstall an app I removed?",
+    "history": [],
+    "expect": {
+      "must_mention_any": [["stays removed", "never added back", "does not"], ["provisioned", "recorded"]],
+      "must_not_mention": ["doctor always restores every app"],
+      "gui_first": false,
+      "ideal": "No: optional apps left out or removed are recorded in Ryoku's provisioning state and stay out. Doctor may deliver a newly default app once to a machine that never had it, but it does not put back an app the user removed. (source: docs/updates.mdx)"
+    },
+    "source": "help-thread",
+    "verdict_then": null,
+    "lang": "en"
+  },
+  {
+    "id": "real.session.poweroff",
+    "question": "¿Dónde encuentro ahora la opción de apagar?",
+    "history": [],
+    "expect": {
+      "must_mention_any": [["Super+Escape", "Mod + Escape"], ["shutdown", "apagar"]],
+      "must_not_mention": ["hold the hardware power button"],
+      "gui_first": true,
+      "ideal": "Pulsa Super+Escape para abrir Quick Settings; ahí están apagar, reiniciar, cerrar sesión y los controles de energía. No hace falta abrir una terminal ni forzar el botón físico. (source: docs/keybindings.mdx)"
+    },
+    "source": "help-thread",
+    "verdict_then": null,
+    "lang": "es"
+  },
+  {
+    "id": "real.theme.follow-wallpaper",
+    "question": "How do I restore wallpaper-driven colors?",
+    "history": [],
+    "expect": {
+      "must_mention_any": [["Super+W", "wallpaper picker"], ["Follow wallpaper"]],
+      "must_not_mention": ["delete colors.json"],
+      "gui_first": true,
+      "ideal": "Open the wallpaper picker with Super+W, press Shift+S, open Theme, and set Palette behaviour to Follow wallpaper. The next wallpaper change regenerates the matugen palette for the desktop. (source: docs/theming.mdx)"
+    },
+    "source": "help-thread",
+    "verdict_then": null,
+    "lang": "en"
+  },
+  {
+    "id": "real.update.no-new-release",
+    "question": "Why does the updater show nothing new?",
+    "history": [],
+    "expect": {
+      "must_mention_any": [["Ryoku Settings > Updates", "Updates"], ["ryoku status"]],
+      "must_not_mention": ["force reinstall"],
+      "gui_first": true,
+      "ideal": "Check Ryoku Settings > Updates or run the read-only `ryoku status`; it compares the installed desktop with what the active channel offers. No offered revision means there is nothing to install, not that the updater is broken. On unstable-dev, status also reports whether the channel build/check gate is still pending. (source: docs/updates.mdx)"
+    },
+    "source": "help-thread",
+    "verdict_then": null,
+    "lang": "en"
+  },
+  {
+    "id": "real.wallpaper.auto-optimize",
+    "question": "Can Ryogami stop recompressing my images?",
+    "history": [],
+    "expect": {
+      "must_mention_any": [["Settings > Library", "Library"], ["Auto-optimise", "Auto-optimize"], ["trash"]],
+      "must_not_mention": ["delete the originals"],
+      "gui_first": true,
+      "ideal": "In the wallpaper picker open Settings > Library > Images & recovery and turn off Auto-optimise new images. When enabled, new PNG, JPEG, and GIF files are converted to WebP and the original is kept in Ryogami's trash for a few days. (source: docs/theming.mdx)"
+    },
+    "source": "help-thread",
+    "verdict_then": null,
+    "lang": "en"
+  },
+  {
+    "id": "real.install.preview-iso",
+    "question": "Can I preview the full desktop from USB?",
+    "history": [],
+    "expect": {
+      "must_mention_any": [["installer", "kiosk"], ["VM", "QEMU", "VirtualBox"]],
+      "must_not_mention": ["it boots a full persistent desktop"],
+      "gui_first": false,
+      "ideal": "The current ISO is a live installer image: it boots into a small Wayland kiosk running the installer, not a general persistent desktop preview. To try the workflow safely first, boot the ISO in QEMU/KVM, VirtualBox, or VMware. (source: docs/install.mdx)"
+    },
+    "source": "help-thread",
+    "verdict_then": null,
+    "lang": "en"
+  },
+  {
+    "id": "real.session.black-screen-terminal",
+    "question": "Login leaves only a terminal on black.",
+    "history": [],
+    "expect": {
+      "must_mention_any": [["Hyprland"], ["ryoku reload", "ryoku-shell.log"]],
+      "must_not_mention": ["rm -rf ~/.config"],
+      "gui_first": false,
+      "ideal": "From that terminal, start `Hyprland`. If the compositor starts, refresh the shell with `ryoku reload` and inspect `~/.local/state/ryoku-shell.log`; if only SDDM is failing, its journal is `sudo journalctl -u sddm -n 200`. (source: docs/troubleshoot.mdx)"
+    },
+    "source": "help-thread",
+    "verdict_then": null,
+    "lang": "en"
+  },
+  {
+    "id": "real.window.return-to-tiling",
+    "question": "How do I tile a floating window again?",
+    "history": [],
+    "expect": {
+      "must_mention_any": [["Super+A", "Mod + A"], ["tile", "floating"]],
+      "must_not_mention": ["restart the compositor"],
+      "gui_first": true,
+      "ideal": "Focus the window and press Super+A. The binding toggles a window between floating and tiled, so no compositor restart or config edit is needed. (source: docs/keybindings.mdx)"
+    },
+    "source": "help-thread",
+    "verdict_then": null,
+    "lang": "en"
+  },
+  {
+    "id": "real.dock.settings-location",
+    "question": "Where are dock controls after switching bars?",
+    "history": [],
+    "expect": {
+      "must_mention_any": [["QS Bar Settings > Dock", "bar settings dock"], ["ryoku-shell bar settings dock"]],
+      "must_not_mention": ["Ryoku Hub > Dock"],
+      "gui_first": true,
+      "ideal": "Dock controls live in QS Bar Settings, not a separate Hub page. Open its Dock route from the bar or run `ryoku-shell bar settings dock`; that panel controls visibility, edge, autohide, and pins. (source: ryoku/rashin/skills/ryoku/bar.md)"
+    },
+    "source": "help-thread",
+    "verdict_then": null,
+    "lang": "en"
+  },
+  {
+    "id": "real.install.secure-boot",
+    "question": "Must Secure Boot be off for the ISO?",
+    "history": [],
+    "expect": {
+      "must_mention_any": [["Secure Boot", "disabled"], ["converter", "existing Arch", "existing CachyOS"]],
+      "must_not_mention": ["disable TPM"],
+      "gui_first": false,
+      "ideal": "The Ryoku ISO does not configure Secure Boot automatically, so disable Secure Boot to boot and install from it. If an existing Arch or CachyOS installation already has a working trusted Secure Boot setup, use the in-place converter instead of assuming the ISO will enroll keys. TPM is a separate setting. (source: docs/install.mdx)"
+    },
+    "source": "help-thread",
+    "verdict_then": null,
+    "lang": "en"
+  },
+  {
+    "id": "real.unsure.nvidia-monitor-mode",
+    "question": "Why is my 165 Hz NVIDIA monitor missing?",
+    "history": [],
+    "expect": {
+      "must_mention_any": [["#help", "doctor"]],
+      "must_not_mention": ["rm -rf", "reinstall immediately"],
+      "gui_first": false,
+      "ideal": "I'm not sure from the symptom alone; the cause could be the cable, EDID, driver, GPU routing, or compositor state. Please make a #help post with `ryoku doctor --check` output, a fresh doctor report, and the modes shown in Ryoku Settings > Displays so the hardware evidence can be checked. (source: docs/troubleshoot.mdx)"
+    },
+    "source": "help-thread",
+    "verdict_then": null,
+    "lang": "en"
+  },
+  {
+    "id": "real.unsure.nvidia-stays-powered",
+    "question": "Why stays my NVIDIA GPU hot after shutdown?",
+    "history": [],
+    "expect": {
+      "must_mention_any": [["#help", "doctor"]],
+      "must_not_mention": ["blacklist nvidia", "rm -rf"],
+      "gui_first": false,
+      "ideal": "I'm not sure without the laptop model, firmware state, and shutdown logs; this can be hardware or firmware specific. Please post in #help with `ryoku doctor --check` output and a fresh doctor report rather than applying a generic NVIDIA blacklist. (source: docs/troubleshoot.mdx)"
+    },
+    "source": "help-thread",
+    "verdict_then": null,
+    "lang": "en"
+  },
+  {
+    "id": "real.unsure.internal-microphone",
+    "question": "Why has my internal microphone disappeared?",
+    "history": [],
+    "expect": {
+      "must_mention_any": [["#help", "doctor"]],
+      "must_not_mention": ["reinstall PipeWire", "rm -rf"],
+      "gui_first": false,
+      "ideal": "I'm not sure from that description alone; the missing device may be firmware, kernel, profile, or audio-routing specific. Please open a #help post with `ryoku doctor --check` output, the hardware model, and the relevant journal/device listing so someone can diagnose it without guessing. (source: docs/troubleshoot.mdx)"
+    },
+    "source": "help-thread",
+    "verdict_then": null,
+    "lang": "en"
+  },
+  {
+    "id": "real.unsure.multimonitor-lag",
+    "question": "Why does crossing monitors freeze my NVIDIA desktop?",
+    "history": [],
+    "expect": {
+      "must_mention_any": [["#help", "doctor"]],
+      "must_not_mention": ["disable NVIDIA permanently", "rm -rf"],
+      "gui_first": false,
+      "ideal": "I'm not sure without the refresh rates, GPU routing, active effects, and logs; several unrelated NVIDIA multi-monitor faults look like this. Please post in #help with `ryoku doctor --check` output, a fresh report, and both display modes. (source: docs/troubleshoot.mdx)"
+    },
+    "source": "help-thread",
+    "verdict_then": null,
+    "lang": "en"
+  },
+  {
+    "id": "real.unsure.steam-download-speed",
+    "question": "Why do Steam downloads swing wildly on Ryoku?",
+    "history": [],
+    "expect": {
+      "must_mention_any": [["#help", "doctor"]],
+      "must_not_mention": ["replace NetworkManager", "rm -rf"],
+      "gui_first": false,
+      "ideal": "I'm not sure from the symptom alone; Steam server choice, Wi-Fi, DNS, storage, and driver state can all produce the same graph. Please post in #help with `ryoku doctor --check` output plus whether wired downloads and non-Steam transfers are stable. (source: docs/troubleshoot.mdx)"
+    },
+    "source": "help-thread",
+    "verdict_then": null,
+    "lang": "en"
+  },
+  {
+    "id": "real.launcher.beginner-basics",
+    "question": "How do I launch apps and learn shortcuts?",
+    "history": [],
+    "expect": {
+      "must_mention_any": [["Super+Space", "Mod + Space"], ["Super+K", "Mod + K"]],
+      "must_not_mention": ["Alt+F2"],
+      "gui_first": true,
+      "ideal": "Press Super+Space and type to launch an app. Keep Kit open with Super+K while learning; it shows the live shortcut list, including your changes, and F1 inside the launcher explains its search prefixes. (source: docs/keybindings.mdx)"
+    },
+    "source": "general",
+    "verdict_then": null,
+    "lang": "en"
+  },
+  {
+    "id": "real.update.check-available",
+    "question": "How can I check whether an update exists?",
+    "history": [],
+    "expect": {
+      "must_mention_any": [["Ryoku Settings > Updates", "Updates"], ["ryoku status"]],
+      "must_not_mention": ["git pull"],
+      "gui_first": true,
+      "ideal": "Open Ryoku Settings > Updates, or run the read-only `ryoku status`. It shows the installed desktop version, what the active channel offers, pending distribution packages, and snapshot count without changing the machine. (source: docs/updates.mdx)"
+    },
+    "source": "general",
+    "verdict_then": null,
+    "lang": "en"
+  },
+  {
+    "id": "real.window.maximize-and-gaps",
+    "question": "How do I enlarge windows and reduce gaps?",
+    "history": [],
+    "expect": {
+      "must_mention_any": [["Super+D", "Mod + D", "Super+F"], ["Ryoku Settings > Window manager", "Window manager"]],
+      "must_not_mention": ["edit hyprland.conf"],
+      "gui_first": true,
+      "ideal": "Super+D maximizes while keeping the bar and gaps; Super+F toggles true fullscreen. To reduce the gaps themselves, open Ryoku Settings > Window manager and adjust the layout/gap controls. (source: docs/keybindings.mdx)"
+    },
+    "source": "general",
+    "verdict_then": null,
+    "lang": "en"
+  },
+  {
+    "id": "real.install.direct-iso",
+    "question": "Do I need Arch installed before Ryoku?",
+    "history": [],
+    "expect": {
+      "must_mention_any": [["ISO", "Arch", "CachyOS"], ["convert", "existing"]],
+      "must_not_mention": ["archinstall is required"],
+      "gui_first": false,
+      "ideal": "No. Ryoku provides signed Arch, CachyOS, and Void installer ISOs that lay down the base system and desktop. If you already run Arch, CachyOS, Void, or Fedora, use the in-place converter instead of reinstalling. (source: docs/install.mdx)"
+    },
+    "source": "general",
+    "verdict_then": null,
+    "lang": "en"
+  },
+  {
+    "id": "real.update.two-lanes",
+    "question": "After pacman -Syu, should Ryoku update too?",
+    "history": [],
+    "expect": {
+      "must_mention_any": [["ryoku update"], ["two lanes", "distribution", "Ryoku packages"]],
+      "must_not_mention": ["pacman updates Ryoku completely"],
+      "gui_first": true,
+      "ideal": "Yes, they are separate lanes: `sudo pacman -Syu` updates the Arch/CachyOS base and kernel, while `ryoku update` updates Ryoku's signed packages, re-lays config, runs Doctor, and reloads the shell. `ryoku update --system` can run both lanes under one snapshot pair. (source: docs/updates.mdx)"
+    },
+    "source": "general",
+    "verdict_then": null,
+    "lang": "en"
+  },
+  {
+    "id": "real.recording.open-tool",
+    "question": "Como abro o gravador de tela integrado?",
+    "history": [],
+    "expect": {
+      "must_mention_any": [["Super+Shift+S", "Mod + Shift + S"], ["Ryoshot", "gpu-screen-recorder"]],
+      "must_not_mention": ["OBS is required"],
+      "gui_first": true,
+      "ideal": "Pressione Super+Shift+S para abrir a barra de captura Ryoshot e escolha a gravação. O backend de gravação é `gpu-screen-recorder`; qualidade, FPS e codec ficam em Ryoku Settings > Recording. (source: docs/apps.mdx)"
+    },
+    "source": "general",
+    "verdict_then": null,
+    "lang": "pt"
+  },
+  {
+    "id": "real.recovery.not-routine",
+    "question": "Should I run recovery after every update?",
+    "history": [],
+    "expect": {
+      "must_mention_any": [["last resort", "not"], ["ryoku update"], ["overwriting", "resets"]],
+      "must_not_mention": ["recovery is the normal updater"],
+      "gui_first": false,
+      "ideal": "No. Use `ryoku update` normally and Doctor or rollback when troubleshooting. `ryoku recovery` is the last resort for a desktop too broken to update; it restores stable and redeploys while overwriting Ryoku configs, which is why settings can reset. (source: docs/updates.mdx)"
+    },
+    "source": "general",
+    "verdict_then": null,
+    "lang": "en"
+  },
+  {
+    "id": "real.compositor.niri-capabilities",
+    "question": "Does niri expose every Hyprland visual feature?",
+    "history": [],
+    "expect": {
+      "must_mention_any": [["hidden", "disabled", "capability"], ["Animations", "Plugins", "Hyprland-only"]],
+      "must_not_mention": ["all Hyprland plugins work on niri"],
+      "gui_first": true,
+      "ideal": "No. Ryoku Settings shows only capabilities the active compositor can honor: Hyprland's compositor plugins and its Animations/performance pages are not offered as working niri controls. Core Ryoku shortcuts remain shared, while compositor-owned options stay on that compositor's page. (source: ryoku/rashin/skills/ryoku/gui.md)"
+    },
+    "source": "general",
+    "verdict_then": null,
+    "lang": "en"
+  },
+  {
+    "id": "real.software.store-options",
+    "question": "Where do I install extra applications?",
+    "history": [],
+    "expect": {
+      "must_mention_any": [["Ryostore"], [">install", "package manager", "Flatpak"]],
+      "must_not_mention": ["Discover is required"],
+      "gui_first": true,
+      "ideal": "Open Ryostore for curated bundles, or use Browse RyoStore from Ryoku Settings > Add-ons. Individual repository packages can also be installed through the launcher's `>install` provider, the edition's package manager, or Flatpak; Ryoku does not require KDE Discover. (source: docs/faq.mdx)"
+    },
+    "source": "general",
+    "verdict_then": null,
+    "lang": "en"
+  },
+  {
+    "id": "real.power.screen-timeout",
+    "question": "Where can I lengthen the screen timeout?",
+    "history": [],
+    "expect": {
+      "must_mention_any": [["Ryoku Settings > Graphics & Power", "Graphics & Power"], ["Idle", "screen timeout"]],
+      "must_not_mention": ["edit hypridle.conf"],
+      "gui_first": true,
+      "ideal": "Open Ryoku Settings > Graphics & Power and adjust the Idle timings for AC and battery. Dim, lock, display-off, and suspend are separate stages; for a temporary keep-awake session, use Caffeine in Quick Settings. (source: docs/hardware.mdx)"
+    },
+    "source": "general",
+    "verdict_then": null,
+    "lang": "en"
+  }
+]

@@ -32,20 +32,36 @@ def _first_match(patterns: tuple[re.Pattern[str], ...], text: str) -> int | None
 def _is_keybind(value: str) -> bool:
     return bool(_KEYBIND_PREFIX.match(value) or _KEYBIND_CHORD.fullmatch(value))
 
+def _is_gui_breadcrumb(value: str) -> bool:
+    return bool(
+        re.search(r"\bryoku\s+(?:hub|settings)\b[^`\n]*>", value, re.IGNORECASE)
+        or re.search(r"\s>\s", value)
+    )
+
 
 def _gui_precedes_command(text: str) -> bool:
     inline_matches = list(_INLINE_CODE.finditer(text))
     keybind_positions = [
         match.start() for match in inline_matches if _is_keybind(match.group(1))
     ]
+    breadcrumb_positions = [
+        match.start()
+        for match in inline_matches
+        if _is_gui_breadcrumb(match.group(1))
+    ]
     command_positions = [
-        match.start() for match in inline_matches if not _is_keybind(match.group(1))
+        match.start()
+        for match in inline_matches
+        if not (
+            _is_keybind(match.group(1))
+            or _is_gui_breadcrumb(match.group(1))
+        )
     ]
     command_positions.extend(match.start() for match in _CODE_BLOCK.finditer(text))
     if not command_positions:
         return True
     gui_position = _first_match(_GUI_CUES, text)
-    gui_positions = keybind_positions + (
+    gui_positions = keybind_positions + breadcrumb_positions + (
         [gui_position] if gui_position is not None else []
     )
     return bool(gui_positions) and min(gui_positions) < min(command_positions)
