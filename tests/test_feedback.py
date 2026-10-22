@@ -48,19 +48,64 @@ class FeedbackStoreTests(unittest.TestCase):
                 answer_message_id=101,
                 request_message_id=100,
                 requester_id=7,
-                decision_kind="answer",
+                decision_kind="cloud",
                 card_id="shell.bar-style",
-                model_route="gemma",
-                source_status="not_requested",
+                model_route="cloud:gpt-6.1-sol",
+                source_status="used",
             )
             store.record_feedback(101, 7, "partially_correct")
 
             row = store.recent_feedback()[0]
-            self.assertEqual(row["decision_kind"], "answer")
+            self.assertEqual(row["decision_kind"], "cloud")
             self.assertEqual(row["card_id"], "shell.bar-style")
-            self.assertEqual(row["model_route"], "gemma")
-            self.assertEqual(row["source_status"], "not_requested")
+            self.assertEqual(row["model_route"], "cloud:gpt-6.1-sol")
+            self.assertEqual(row["source_status"], "used")
             self.assertEqual(row["answer_revision"], 2)
+
+    def test_accepts_every_pipeline_and_legacy_decision_route(self):
+        routes = (
+            "cloud",
+            "card",
+            "clarify",
+            "safety",
+            "no_match",
+            "source",
+            "answer",
+            "unknown",
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            store = FeedbackStore(Path(directory) / "nero-feedback.sqlite3")
+            for index, route in enumerate(routes, 1):
+                store.record_answer(
+                    answer_message_id=index,
+                    request_message_id=100 + index,
+                    requester_id=7,
+                    decision_kind=route,
+                )
+
+    def test_rejects_invalid_cloud_model_routes(self):
+        invalid = (
+            "local",
+            "legacy-model",
+            "cloud:",
+            "cloud:UPPER",
+            "cloud:-leading",
+            "cloud:model_name",
+            f"cloud:{'a' * 42}",
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            store = FeedbackStore(Path(directory) / "nero-feedback.sqlite3")
+            for index, route in enumerate(invalid, 1):
+                with self.subTest(route=route), self.assertRaisesRegex(
+                    ValueError,
+                    "invalid model_route",
+                ):
+                    store.record_answer(
+                        answer_message_id=index,
+                        request_message_id=100 + index,
+                        requester_id=7,
+                        model_route=route,
+                    )
 
     def test_migrates_existing_answers_without_route_metadata(self):
         with tempfile.TemporaryDirectory() as directory:

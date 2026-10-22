@@ -1,0 +1,27 @@
+[Unit]
+Description=Nero local LLM bridge
+Before=nero.service
+
+[Service]
+User=neur0map
+Group=nero
+WorkingDirectory=/opt/nero/app
+ExecStart=/opt/nero/venv/bin/python -B -m llm_bridge.server
+Environment=NERO_LLM_SOCKET=/run/nero-llm/llm.sock
+RuntimeDirectory=nero-llm
+RuntimeDirectoryMode=0750
+UMask=0007
+Restart=on-failure
+RestartSec=3
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=full
+ProtectHome=read-only
+ReadWritePaths=/home/neur0map/.hermes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+
+[Install]
+WantedBy=multi-user.target

@@ -9,7 +9,7 @@ import discord
 from dotenv import load_dotenv
 
 from feedback import FeedbackStore, FeedbackView
-from src.agent.runtime import build_answerer, build_prowl, build_retriever
+from src.agent.runtime import build_index, build_pipeline, build_prowl
 from src.handlers.messages import extract_query, handle_message
 
 
@@ -18,17 +18,19 @@ class Config:
     token: str
     model_name: str
     support_path: Path
+    gui_map_path: Path
+    docs_path: Path
     ryoku_repo_path: Path | None
     prowl_timeout: float
     prowl_result_limit: int
     prowl_executable: str
     support_channel_id: int
-    ollama_host: str
-    gemma_model: str
-    lfm_model: str
-    ollama_timeout: float
+    help_forum_id: int
     feedback_path: Path
-    llm_rewrite: bool
+    cloud_enabled: bool
+    llm_socket: str
+    llm_model: str
+    llm_timeout: float
 
 
 def load_config() -> Config:
@@ -36,51 +38,54 @@ def load_config() -> Config:
     token = os.getenv("TOKEN", "").strip()
     if not token:
         raise RuntimeError("Missing TOKEN in .env")
-    timeout = float(os.getenv("PROWL_TIMEOUT_SECONDS", "4"))
-    limit = int(os.getenv("PROWL_RESULT_LIMIT", "20"))
+    prowl_timeout = float(os.getenv("PROWL_TIMEOUT_SECONDS", "4"))
+    prowl_limit = int(os.getenv("PROWL_RESULT_LIMIT", "20"))
     support_channel_id = int(os.getenv("SUPPORT_CHANNEL_ID", "0"))
-    ollama_timeout = float(os.getenv("OLLAMA_TIMEOUT_SECONDS", "120"))
-    llm_rewrite_value = os.getenv("NERO_LLM_REWRITE", "0").strip()
-    ollama_host = os.getenv("OLLAMA_HOST", "http://127.0.0.1:11434").rstrip("/")
-    if not ollama_host.startswith(("http://", "https://")):
-        raise RuntimeError("OLLAMA_HOST must be an HTTP URL")
-    if not 0.1 <= timeout <= 30:
+    help_forum_id = int(os.getenv("HELP_FORUM_ID", "0"))
+    cloud_value = os.getenv("NERO_CLOUD", "1").strip()
+    llm_timeout = float(os.getenv("NERO_LLM_TIMEOUT_SECONDS", "25"))
+    if not 0.1 <= prowl_timeout <= 30:
         raise RuntimeError("PROWL_TIMEOUT_SECONDS must be between 0.1 and 30")
-    if not 1 <= limit <= 20:
+    if not 1 <= prowl_limit <= 20:
         raise RuntimeError("PROWL_RESULT_LIMIT must be between 1 and 20")
     if support_channel_id < 0:
-        raise RuntimeError("SUPPORT_CHANNEL_ID must be a positive Discord channel ID")
-    if not 10 <= ollama_timeout <= 240:
-        raise RuntimeError("OLLAMA_TIMEOUT_SECONDS must be between 10 and 240")
-    if llm_rewrite_value not in {"0", "1"}:
-        raise RuntimeError("NERO_LLM_REWRITE must be 0 or 1")
+        raise RuntimeError("SUPPORT_CHANNEL_ID must be a non-negative Discord channel ID")
+    if help_forum_id < 0:
+        raise RuntimeError("HELP_FORUM_ID must be a non-negative Discord channel ID")
+    if cloud_value not in {"0", "1"}:
+        raise RuntimeError("NERO_CLOUD must be 0 or 1")
+    if not 5 <= llm_timeout <= 60:
+        raise RuntimeError("NERO_LLM_TIMEOUT_SECONDS must be between 5 and 60")
     repo = os.getenv("RYOKU_REPO_PATH", "").strip()
     return Config(
         token=token,
-        model_name=os.getenv(
-            "MODEL_NAME", "minishlab/potion-base-32M"
-        ),
+        model_name=os.getenv("MODEL_NAME", "minishlab/potion-base-32M"),
         support_path=Path(os.getenv("SUPPORT_PATH", "data/support.json")),
+        gui_map_path=Path(os.getenv("GUI_MAP_PATH", "data/gui_map.json")),
+        docs_path=Path(os.getenv("DOCS_CHUNKS_PATH", "data/docs_chunks.json")),
         ryoku_repo_path=Path(repo) if repo else None,
-        prowl_timeout=timeout,
-        prowl_result_limit=limit,
+        prowl_timeout=prowl_timeout,
+        prowl_result_limit=prowl_limit,
         prowl_executable=os.getenv("PROWL_AGENT_PATH", "prowl-agent").strip(),
         support_channel_id=support_channel_id,
-        ollama_host=ollama_host,
-        gemma_model=os.getenv("GEMMA_MODEL", "gemma4:e4b").strip(),
-        lfm_model=os.getenv("LFM_MODEL", "lfm2.5:latest").strip(),
-        ollama_timeout=ollama_timeout,
+        help_forum_id=help_forum_id,
         feedback_path=Path(
             os.getenv("FEEDBACK_DB_PATH", "runtime/nero-feedback.sqlite3")
         ),
-        llm_rewrite=llm_rewrite_value == "1",
+        cloud_enabled=cloud_value == "1",
+        llm_socket=os.getenv(
+            "NERO_LLM_SOCKET",
+            "/run/nero-llm/llm.sock",
+        ).strip(),
+        llm_model=os.getenv("NERO_LLM_MODEL", "gpt-6.1-sol").strip(),
+        llm_timeout=llm_timeout,
     )
 
 
 def create_client(config: Config) -> discord.Client:
-    retriever = build_retriever(config)
+    index = build_index(config)
     prowl = build_prowl(config)
-    answerer = build_answerer(config)
+    pipeline = build_pipeline(config, index, prowl)
     feedback = FeedbackStore(config.feedback_path)
     intents = discord.Intents.default()
     intents.message_content = True
@@ -89,9 +94,12 @@ def create_client(config: Config) -> discord.Client:
 
     @client.event
     async def on_ready():
+        counts = index.kind_counts
+        cloud = config.llm_model if config.cloud_enabled else "cloud off"
         print(
             f"Logged in as {client.user} (ID: {client.user.id}); "
-            f"{len(retriever.cards)} support intents; "
+            f"{counts['card']} cards, {counts['gui']} GUI entries, "
+            f"{counts['doc']} docs chunks; {cloud}; "
             f"Prowl {'enabled' if prowl else 'disabled'}"
         )
 
@@ -100,11 +108,10 @@ def create_client(config: Config) -> discord.Client:
         await handle_message(
             message,
             client.user.id,
-            retriever,
-            prowl,
+            pipeline,
             Path("data/logo.png"),
-            answerer=answerer,
             support_channel_id=config.support_channel_id,
+            help_forum_id=config.help_forum_id,
             feedback=feedback,
         )
 

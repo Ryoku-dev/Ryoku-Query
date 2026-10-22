@@ -4,31 +4,41 @@ from typing import TYPE_CHECKING
 
 from model2vec import StaticModel
 
-from src.agent.answering import Answerer
-from src.agent.ollama import OllamaClient
 from prowl import ProwlClient
-from support import SupportRetriever, load_support_cards
+from src.agent.cloud import CloudClient
+from src.agent.pipeline import SupportPipeline
+from src.knowledge.index import KnowledgeIndex
 
 if TYPE_CHECKING:
     from bot import Config
 
 
-def build_retriever(config: Config) -> SupportRetriever:
+def build_index(config: Config) -> KnowledgeIndex:
     model = StaticModel.from_pretrained(config.model_name)
-    cards = load_support_cards(config.support_path)
-    return SupportRetriever(cards, model)
-
-
-def build_answerer(config: Config) -> Answerer:
-    return Answerer(
-        OllamaClient(
-            config.ollama_host,
-            config.gemma_model,
-            config.lfm_model,
-            timeout=config.ollama_timeout,
-        ),
-        rewrite_enabled=config.llm_rewrite,
+    return KnowledgeIndex.from_paths(
+        config.support_path,
+        config.gui_map_path,
+        config.docs_path,
+        model,
     )
+
+
+def build_cloud(config: Config) -> CloudClient | None:
+    if not config.cloud_enabled:
+        return None
+    return CloudClient(
+        config.llm_socket,
+        config.llm_model,
+        timeout=config.llm_timeout,
+    )
+
+
+def build_pipeline(
+    config: Config,
+    index: KnowledgeIndex,
+    prowl: ProwlClient | None,
+) -> SupportPipeline:
+    return SupportPipeline(index, build_cloud(config), prowl)
 
 
 def build_prowl(config: Config) -> ProwlClient | None:

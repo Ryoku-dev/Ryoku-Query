@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 import sqlite3
 from pathlib import Path
 
@@ -7,10 +8,19 @@ import discord
 
 
 VERDICTS = ("correct", "partially_correct", "incorrect")
-DECISION_KINDS = ("answer", "clarify", "no_match", "safety", "unknown")
-MODEL_ROUTES = ("gemma", "lfm", "deterministic")
-SOURCE_STATUSES = ("ok", "no_match", "unavailable", "not_requested")
+DECISION_KINDS = (
+    "cloud",
+    "card",
+    "clarify",
+    "safety",
+    "no_match",
+    "source",
+    "answer",
+    "unknown",
+)
+SOURCE_STATUSES = ("used", "not_requested", "ok", "no_match", "unavailable")
 ANSWER_REVISION = 2
+_MODEL_ROUTE_RE = re.compile(r"cloud:[a-z0-9][a-z0-9.\-]{0,40}\Z")
 BUTTON_LABELS = {
     "correct": "Correct",
     "partially_correct": "Partially correct",
@@ -144,7 +154,7 @@ class FeedbackStore:
     ) -> None:
         if decision_kind not in DECISION_KINDS:
             raise ValueError("invalid decision_kind")
-        if model_route not in MODEL_ROUTES:
+        if model_route != "deterministic" and _MODEL_ROUTE_RE.fullmatch(model_route) is None:
             raise ValueError("invalid model_route")
         if source_status not in SOURCE_STATUSES:
             raise ValueError("invalid source_status")

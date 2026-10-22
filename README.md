@@ -6,10 +6,9 @@
 
 **The Ryoku support bot for Discord** &middot; *reviewed answers, safety prompts, and source-backed replies.*
 
-Nero is the private Discord bot for answering reviewed Ryoku support questions.
-It serves curated responses from `data/support.json`, adds
-safety context for risky actions, and can search a local stable Ryoku checkout
-for source-backed answers through Prowl.
+Nero is the private Discord bot for Ryoku support. It retrieves reviewed
+support cards, Ryoku's GUI map, documentation, and stable source evidence,
+then produces short GUI-first answers with deterministic fallback.
 
 [![License: GPL-3.0](https://img.shields.io/badge/license-GPL--3.0-E2342A?style=for-the-badge)](LICENSE)
 [![Python 3.12](https://img.shields.io/badge/python-3.12-E2342A?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org)
@@ -65,19 +64,30 @@ Set:
 - `PROWL_AGENT_PATH` to the absolute Prowl executable, e.g. `/home/neur0map/workspace/prowl-agent/prowl-agent`. This prevents service `PATH` drift.
 - `SUPPORT_CHANNEL_ID` to the one Discord channel where ordinary messages should be answered. Leave it as `0` to require a mention/reply everywhere.
 - `FEEDBACK_DB_PATH` to a local SQLite file for Correct/Incorrect signals. It defaults to `runtime/nero-feedback.sqlite3` and must be backed up separately from Git.
-- `OLLAMA_HOST`, `GEMMA_MODEL=gemma4:e4b`, and `LFM_MODEL=lfm2.5:latest` for the optional local rewrite path
-- `NERO_LLM_REWRITE=0` (default) to send approved support cards verbatim; set it to `1` only after a reviewed local-model evaluation
-- optionally `MODEL_NAME`, `PROWL_TIMEOUT_SECONDS`, `PROWL_RESULT_LIMIT`, and `OLLAMA_TIMEOUT_SECONDS`
+- `NERO_CLOUD`, `NERO_LLM_SOCKET`, `NERO_LLM_MODEL`, and `NERO_LLM_TIMEOUT_SECONDS` for the cloud answer bridge
+- `GUI_MAP_PATH` and `DOCS_CHUNKS_PATH` for the generated knowledge files
+- `HELP_FORUM_ID` to answer new posts in the support forum automatically
+- optionally `MODEL_NAME`, `PROWL_TIMEOUT_SECONDS`, and `PROWL_RESULT_LIMIT`
 
-### Local model behavior
+### How Nero answers
 
-Nero retrieves the reviewed support card and/or Prowl citations **before** any local-model work. By default (`NERO_LLM_REWRITE=0`), it sends the approved support-card wording verbatim so commands, paths, and safety wording cannot be lost in a rewrite.
+Nero retrieves a compact evidence pack from reviewed support cards, the
+generated Ryoku GUI map, documentation chunks, and Prowl source results when
+needed. It sends that evidence through the local `nero-llm` bridge
+(`llm_bridge/`, `deploy/nero-llm.service`) to a fast cloud model. The bridge
+runs as the account that holds the Hermes OAuth login. Nero validates the
+result and falls back to a deterministic card answer whenever the model fails.
 
-- Set `NERO_LLM_REWRITE=1` only for a model that passed a reviewed evaluation against the support catalog.
-- **Gemma (`gemma4:e4b`)** is the optional rewrite route for normal reviewed support answers with thinking disabled.
-- **LFM (`lfm2.5:latest`)** is the optional rewrite route for replies backed by verified Prowl evidence. Only its final response is eligible for Discord.
-- Both optional routes receive the same evidence-only contract: no invented commands, URLs, paths, system state, or citations; a read-only check before a state-changing recovery action; and no private reasoning in the response.
-- The bot serializes local model calls and sends `keep_alive: 0`. This is deliberate: on this 14 GiB CPU-first host, keeping both models resident can cause model eviction or OOM. Requests fall back to the reviewed answer if local inference is unavailable.
+Nero automatically answers the starter message in the configured help forum.
+In the ordinary support channel it ignores greetings, thanks, and other short
+messages that are not requests. Mentions and replies always get an answer.
+
+Regenerate the knowledge files from current Ryoku checkouts:
+
+```bash
+python tools/build_gui_map.py --repo <stable ryoku> --unstable <unstable ryoku> --out data/gui_map.json
+python tools/build_docs_chunks.py --docs <ryoku-docs> --repo <ryoku> --out data/docs_chunks.json
+```
 
 
 ## Run
@@ -101,6 +111,12 @@ Run the unit test suite:
 uv run --python 3.12 \
   --with-requirements requirements.txt \
   python -B -m unittest discover -s tests -v
+```
+
+Inspect the answer-evaluation options:
+
+```bash
+python -m eval.run_eval --help
 ```
 
 Run the regression benchmark:

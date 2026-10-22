@@ -1,0 +1,212 @@
+[
+  {
+    "id": "gui.window-shadow",
+    "question": "How do I turn off the dark shadow around an open window?",
+    "history": [],
+    "expect": {
+      "must_mention_any": [["Ryoku Hub", "Ryoku Settings"], ["Window Manager"], ["shadow", "Look"]],
+      "must_not_mention": ["~/.config/quickshell", "Deck frost"],
+      "gui_first": true,
+      "ideal": "Open Ryoku Hub with Super+comma, then go to Window Manager > Look > Shadows and turn off Window shadows. If the whole parent or other windows are darkened instead of just the window edge, check the Look > Opacity dimming controls. (source: ryoku/hub/quickshell/schema/WindowSettings.js)"
+    },
+    "source": "synthetic",
+    "verdict_then": null,
+    "lang": "en"
+  },
+  {
+    "id": "gui.wallpaper",
+    "question": "What's the normal way to change my wallpaper?",
+    "history": [],
+    "expect": {
+      "must_mention_any": [["Super+W", "Super + W"], ["wallpaper picker", "picker"]],
+      "must_not_mention": ["~/.config/quickshell"],
+      "gui_first": true,
+      "ideal": "Press Super+W to open the wallpaper picker, then choose a wallpaper. The headless fallback is `ryogami wallpaper set <path>`. (source: ryoku/rashin/skills/ryoku/gui.md)"
+    },
+    "source": "synthetic",
+    "verdict_then": null,
+    "lang": "en"
+  },
+  {
+    "id": "gui.open-settings",
+    "question": "How do I open the settings app?",
+    "history": [],
+    "expect": {
+      "must_mention_any": [["Super+comma", "Super + comma", "Super+,", "Super + ,"], ["Ryoku Hub", "Ryoku Settings"]],
+      "must_not_mention": ["~/.config/quickshell"],
+      "gui_first": true,
+      "ideal": "Press Super+comma to open Ryoku Hub, whose window title is Ryoku Settings. `ryoku-shell hub open` is the fallback. (source: ryoku/rashin/skills/ryoku/gui.md)"
+    },
+    "source": "synthetic",
+    "verdict_then": null,
+    "lang": "en"
+  },
+  {
+    "id": "gui.bar-style",
+    "question": "Where can I switch to a different bar style?",
+    "history": [],
+    "expect": {
+      "must_mention_any": [["Ryoku Hub", "Ryoku Settings"], ["Bar Studio"]],
+      "must_not_mention": ["~/.config/quickshell", "QS Bar Settings > Bars"],
+      "gui_first": true,
+      "ideal": "Open Ryoku Hub with Super+comma and choose Bar Studio, then select an installed compatible style from its gallery. (source: ryoku/hub/quickshell/pages/BarStudioPage.qml)"
+    },
+    "source": "synthetic",
+    "verdict_then": null,
+    "lang": "en"
+  },
+  {
+    "id": "gui.rebind-key",
+    "question": "I want to change one of the default keyboard shortcuts. Where do I do that?",
+    "history": [],
+    "expect": {
+      "must_mention_any": [["Ryoku Hub", "Ryoku Settings"], ["Keybinds"], ["record", "press the combo", "shortcut"]],
+      "must_not_mention": ["~/.config/quickshell", "rebinds.lua", "rebinds.kdl"],
+      "gui_first": true,
+      "ideal": "Open Ryoku Hub with Super+comma, go to Keybinds, select the binding, click record, and press the new combo. (source: ryoku/hub/quickshell/pages/KeybindsPage.qml)"
+    },
+    "source": "synthetic",
+    "verdict_then": null,
+    "lang": "en"
+  },
+  {
+    "id": "gui.update-system",
+    "question": "How should I update Ryoku?",
+    "history": [],
+    "expect": {
+      "must_mention_any": [["Ryoku Hub", "Ryoku Settings"], ["Updates"], ["Update now", "ryoku update"]],
+      "must_not_mention": ["~/.config/quickshell"],
+      "gui_first": true,
+      "ideal": "Open Ryoku Hub with Super+comma, go to Updates, and choose Update now. If the GUI is unavailable, run `ryoku update`. (source: docs/updates.mdx)"
+    },
+    "source": "synthetic",
+    "verdict_then": null,
+    "lang": "en"
+  },
+  {
+    "id": "recovery.rollback-update",
+    "question": "The last Ryoku update broke my desktop. How can I roll it back?",
+    "history": [],
+    "expect": {
+      "must_mention_any": [["ryoku rollback"], ["snapshot", "snapshots"], ["Limine", "boot menu"]],
+      "must_not_mention": ["~/.config/quickshell", "sudo pacman -Syu"],
+      "gui_first": false,
+      "ideal": "Run `ryoku rollback` to list snapshots, then `ryoku rollback <id>` to restore one. If the system cannot boot, select an available snapshot from the Limine boot menu. (source: docs/updates.mdx)"
+    },
+    "source": "synthetic",
+    "verdict_then": null,
+    "lang": "en"
+  },
+  {
+    "id": "gui.pin-dock-app",
+    "question": "How do I keep Firefox pinned in the dock?",
+    "history": [],
+    "expect": {
+      "must_mention_any": [["QS Bar Settings"], ["Dock"], ["pin", "pinned"]],
+      "must_not_mention": ["~/.config/quickshell", "Ryoku Hub > Desktop"],
+      "gui_first": true,
+      "ideal": "Open QS Bar Settings > Dock and pin Firefox there. The fallback is `ryoku-shell dock pin firefox` (or its desktop app id). (source: ryoku/rashin/skills/ryoku/SKILL.md)"
+    },
+    "source": "synthetic",
+    "verdict_then": null,
+    "lang": "en"
+  },
+  {
+    "id": "gui.lockscreen-theme",
+    "question": "Where do I change the lock screen theme?",
+    "history": [],
+    "expect": {
+      "must_mention_any": [["Ryoku Hub", "Ryoku Settings"], ["Lockscreen"], ["Lock skin", "theme"]],
+      "must_not_mention": ["~/.config/quickshell", "SDDM config"],
+      "gui_first": true,
+      "ideal": "Open Ryoku Hub with Super+comma, go to Lockscreen, and choose a Lock skin; Browse RyoStore opens the lockscreen catalogue. (source: ryoku/hub/quickshell/schema/LockscreenPage.js)"
+    },
+    "source": "synthetic",
+    "verdict_then": null,
+    "lang": "en"
+  },
+  {
+    "id": "gui.night-light",
+    "question": "How can I make the display warmer at night?",
+    "history": [],
+    "expect": {
+      "must_mention_any": [["Ryoku Hub", "Ryoku Settings"], ["Displays"], ["Night light", "warm screen"], ["Follow the sun", "temperature", "warmer"]],
+      "must_not_mention": ["~/.config/quickshell", "Graphics & Power"],
+      "gui_first": true,
+      "ideal": "Open Ryoku Hub with Super+comma, go to Displays > Night Light, enable Warm screen, and optionally enable Follow the sun or adjust the temperature. (source: ryoku/hub/quickshell/pages/DisplaysPage.qml)"
+    },
+    "source": "synthetic",
+    "verdict_then": null,
+    "lang": "en"
+  },
+  {
+    "id": "gui.enable-rashin",
+    "question": "How do I turn on Rashin?",
+    "history": [],
+    "expect": {
+      "must_mention_any": [["Ryoku Hub", "Ryoku Settings"], ["Rashin"], ["enable", "switch", "turn it on"]],
+      "must_not_mention": ["~/.config/quickshell"],
+      "gui_first": true,
+      "ideal": "Open Ryoku Hub with Super+comma, choose Rashin, and use its master switch to enable it; the page also offers one-click Hermes setup. (source: ryoku/hub/quickshell/pages/RashinPage.qml)"
+    },
+    "source": "synthetic",
+    "verdict_then": null,
+    "lang": "en"
+  },
+  {
+    "id": "gui.install-addons",
+    "question": "Where can I browse and install extra Ryoku add-ons?",
+    "history": [],
+    "expect": {
+      "must_mention_any": [["Ryoku Hub", "Ryoku Settings"], ["Add-ons", "Addons"], ["RyoStore", "store"]],
+      "must_not_mention": ["~/.config/quickshell", "pacman -S"],
+      "gui_first": true,
+      "ideal": "Open Ryoku Hub with Super+comma and go to Add-ons to manage installed extras and browse RyoStore for more. (source: ryoku/rashin/skills/ryoku/gui.md)"
+    },
+    "source": "synthetic",
+    "verdict_then": null,
+    "lang": "en"
+  },
+  {
+    "id": "gui.screenshot-clipboard",
+    "question": "How do I take a screenshot and put the image on the clipboard?",
+    "history": [],
+    "expect": {
+      "must_mention_any": [["Super+Shift+S", "Super + Shift + S", "Print"], ["Ctrl+C", "Ctrl + C", "Copy"], ["clipboard"]],
+      "must_not_mention": ["~/.config/quickshell", "save it then open a terminal"],
+      "gui_first": true,
+      "ideal": "Press Super+Shift+S (or Print) to open the capture flow, select the shot, then press Ctrl+C or choose Copy. Ryoku places the PNG in the system clipboard and clipboard history. (source: ryoku/shell/quickshell/ryoshot/shell.qml)"
+    },
+    "source": "synthetic",
+    "verdict_then": null,
+    "lang": "en"
+  },
+  {
+    "id": "gui.switch-compositor",
+    "question": "Can I switch this install from Hyprland to niri without reinstalling Ryoku?",
+    "history": [],
+    "expect": {
+      "must_mention_any": [["Ryoku Hub", "Ryoku Settings"], ["Window Manager"], ["Compositor"], ["niri"], ["log out", "next login", "greeter"]],
+      "must_not_mention": ["~/.config/quickshell", "reinstall Ryoku"],
+      "gui_first": true,
+      "ideal": "Open Ryoku Hub with Super+comma, go to Window Manager > Compositor, choose niri, then log out and select it at the greeter. The fallback is `ryoku wm use niri`. (source: ryoku/hub/quickshell/pages/WindowManagerPage.qml)"
+    },
+    "source": "synthetic",
+    "verdict_then": null,
+    "lang": "en"
+  },
+  {
+    "id": "pt.wallpaper",
+    "question": "Como eu troco o papel de parede no Ryoku?",
+    "history": [],
+    "expect": {
+      "must_mention_any": [["Super+W", "Super + W"], ["seletor", "picker"], ["papel de parede", "wallpaper"]],
+      "must_not_mention": ["~/.config/quickshell"],
+      "gui_first": true,
+      "ideal": "Pressione Super+W para abrir o seletor de papel de parede e escolha uma imagem. Como alternativa no terminal, use `ryogami wallpaper set <caminho>`. (source: ryoku/rashin/skills/ryoku/gui.md)"
+    },
+    "source": "synthetic",
+    "verdict_then": null,
+    "lang": "pt"
+  }
+]
