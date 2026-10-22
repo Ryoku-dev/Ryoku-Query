@@ -9,6 +9,8 @@ User=nero
 Group=nero
 WorkingDirectory=/opt/nero/app
 EnvironmentFile=/etc/nero/nero.env
+# Print statements reach the journal as they happen instead of when a buffer fills.
+Environment=PYTHONUNBUFFERED=1
 ExecStart=/opt/nero/venv/bin/python -B bot.py
 Restart=on-failure
 RestartSec=5

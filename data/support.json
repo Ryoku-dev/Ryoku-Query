@@ -2775,10 +2775,10 @@
     "examples": [
       "where are the SDDM error logs",
       "what journal command shows greeter failures",
-      "how do I collect login manager logs",
+      "how do I collect display manager logs",
       "which log should I attach for a login loop",
       "show the last SDDM messages",
-      "I already reproduced the login failure and need logs",
+      "I already reproduced the greeter failure and need its journal",
       "which service journal records sign-in failures?",
       "where can I read display-manager error messages?"
     ],
@@ -2787,7 +2787,7 @@
       "journal",
       "logs",
       "greeter",
-      "login",
+      "journalctl",
       "collect",
       "manager",
       "messages",
@@ -2808,9 +2808,7 @@
       "system/services/",
       "ryoku/lockscreen/sddm/"
     ],
-    "clarifies_with": [
-      "recovery.login-screen"
-    ]
+    "clarifies_with": []
   },
   {
     "id": "logs.shell-refresh",
@@ -3696,7 +3694,11 @@
       "can I start my compositor from a TTY",
       "how do I tell SDDM from a session failure",
       "the login screen disappeared",
-      "a tela de login ficou preta"
+      "a tela de login ficou preta",
+      "I can't log in, can someone help",
+      "logging in is broken for me",
+      "help, my sign in screen won't let me in",
+      "could use some help with logging in"
     ],
     "keywords": [
       "login",
@@ -3723,9 +3725,7 @@
       "ryoku/lockscreen/sddm/ryoku-greeter",
       "ryoku/wm/"
     ],
-    "clarifies_with": [
-      "logs.sddm"
-    ]
+    "clarifies_with": []
   },
   {
     "id": "recovery.tty-rollback",
