@@ -297,7 +297,7 @@
     "examples": [
       "Where do I pick the audio output?",
       "My internal microphone is missing",
-      "How do I switch from speakers to headphones?",
+      "How do I switch from speakers to my headset?",
       "Can I select a Bluetooth headset microphone?",
       "Where are the input device controls?",
       "Como escolho o microfone padrão?"
@@ -306,7 +306,7 @@
       "audio",
       "speaker",
       "microphone",
-      "headphones",
+      "routing",
       "input",
       "output",
       "pipewire",
@@ -373,7 +373,7 @@
     "title": "Understand Audio-Reactive Bar Motion",
     "examples": [
       "Why does the bar animation stop when music stops?",
-      "The stream moves only while audio plays",
+      "The bar wave moves only while audio plays",
       "Is Surge Gap meant to react this strongly?",
       "Why is the visualizer line frozen at idle?",
       "How do I disable the sound-reactive bar effect?"
@@ -385,7 +385,7 @@
       "animation",
       "music",
       "idle",
-      "stream",
+      "wave",
       "gap"
     ],
     "exact_terms": [
@@ -598,7 +598,7 @@
     "examples": [
       "middle click keeps pasting selected text",
       "disable primary selection paste",
-      "pressing the mouse wheel inserts text",
+      "pressing the wheel button inserts text",
       "where is the middle click paste toggle",
       "turn primary paste back on",
       "como desativar colar com o botão do meio"
@@ -609,13 +609,13 @@
       "paste",
       "primary",
       "selection",
-      "mouse",
+      "button",
       "wheel"
     ],
     "exact_terms": [
       "Middle-click pastes",
       "primary selection paste",
-      "mouse wheel pastes"
+      "wheel button pastes"
     ],
     "answer": "Open Ryoku Hub > Input > Middle-click pastes and turn it off or on. This controls inserting the current primary selection when you press the wheel; it is separate from Super+V clipboard history and from Emulate middle click. Save through the Hub so the active Hyprland, niri or unstable Wayfire provider receives the setting.",
     "risk": "state-changing",
@@ -1255,7 +1255,13 @@
       "How do I make the desktop logically smaller?",
       "The resolution menu has no alternatives",
       "My eDP screen only shows one size",
-      "Só aparece uma resolução na tela"
+      "Só aparece uma resolução na tela",
+      "Why did the extra refresh-rate choices disappear?",
+      "The compositor reports fewer modes than the panel EDID",
+      "Why did an external screen lose its alternate resolutions?",
+      "EDID has several timings but the picker exposes one",
+      "Troubleshoot a display that exposes only its native mode",
+      "The monitor settings lost all alternative modes"
     ],
     "keywords": [
       "display",
@@ -1264,12 +1270,21 @@
       "edp",
       "laptop",
       "scale",
-      "logical"
+      "logical",
+      "monitor",
+      "mode",
+      "choices",
+      "edid",
+      "settings",
+      "several",
+      "supports",
+      "troubleshoot"
     ],
     "exact_terms": [
       "only one resolution",
       "native resolution",
-      "eDP"
+      "eDP",
+      "missing display modes"
     ],
     "answer": "Open `Ryoku Hub > Displays`, select the panel, and use `Scale`. Laptop eDP panels often expose only their native resolution; scaling is the Wayland-correct way to change the logical desktop size, and Ryoku labels the result. If an external monitor that previously offered several modes now shows only one, run `ryoku doctor --check` and attach `ryoku doctor --report` plus the cable or adapter type to a #help post.",
     "risk": "informational",
@@ -1291,7 +1306,7 @@
       "Where do I change monitor scaling?",
       "How can I make UI larger on one screen?",
       "Will my display scale survive login?",
-      "Do updates overwrite monitor settings?",
+      "Will a saved fractional scale survive updates?",
       "My 4K panel needs fractional scaling",
       "Como salvo a escala do monitor?"
     ],
@@ -1472,7 +1487,9 @@
       "is there a Fedora edition now",
       "can I install Ryoku on Void",
       "does Ryoku support Artix or Pop OS",
-      "which editions have an official ISO"
+      "which editions have an official ISO",
+      "is Ryoku its own distro or built on another one?",
+      "what distributions can run the Ryoku desktop?"
     ],
     "keywords": [
       "editions",
@@ -1480,12 +1497,17 @@
       "cachyos",
       "void",
       "fedora",
-      "support"
+      "support",
+      "linux",
+      "distro",
+      "distribution",
+      "base"
     ],
     "exact_terms": [
       "supported editions",
       "Fedora edition",
-      "Void ISO"
+      "Void ISO",
+      "Ryoku distro"
     ],
     "answer": "Stable ships signed Arch and CachyOS ISOs and supports in-place installation on x86_64 Arch-based or Debian-based systems. Its desktop providers are Hyprland and niri; stable does not support Void, Fedora, or Wayfire. On unstable, native editions expand to Arch, CachyOS, Void glibc, and Fedora 44/45: Void is niri-only and has its own ISO, Fedora is script-installer only, and Wayfire is experimental on Arch and CachyOS. NixOS, Artix, and rpm-ostree Fedora remain unsupported.",
     "risk": "informational",
@@ -1811,7 +1833,9 @@
       "what does doctor explain actually do",
       "will Doctor automatically run AI fixes",
       "how do I get root cause suggestions",
-      "does the explain option send my report online"
+      "does the explain option send my report online",
+      "what do these health findings mean?",
+      "can the assistant interpret a failed check?"
     ],
     "keywords": [
       "doctor",
@@ -1819,12 +1843,17 @@
       "analysis",
       "cloud",
       "advisory",
-      "key"
+      "key",
+      "findings",
+      "meaning",
+      "interpret",
+      "diagnosis"
     ],
     "exact_terms": [
       "ryoku doctor --explain",
       "RYOKU_AI_KEY",
-      "root-cause analysis"
+      "root-cause analysis",
+      "explain findings"
     ],
     "answer": "Run `ryoku doctor --explain` only if you want optional cloud analysis. It sends the same Doctor report to the OpenAI-compatible endpoint configured with your own key, then prints advisory root-cause and repair suggestions. It is read-only and never executes the suggestions; review them before changing anything.",
     "risk": "informational",
@@ -1881,7 +1910,11 @@
       "what should I attach to my Ryoku issue",
       "where does Doctor save its report",
       "can I collect system state for support",
-      "which command gathers failed services and logs"
+      "which command gathers failed services and logs",
+      "how do I export Doctor's collected system state?",
+      "can I package the health findings for a maintainer?",
+      "Create a Doctor bundle for a help request",
+      "How can I generate a Doctor report for support?"
     ],
     "keywords": [
       "doctor",
@@ -1889,7 +1922,13 @@
       "diagnostic",
       "support",
       "issue",
-      "state"
+      "state",
+      "bundle",
+      "generate",
+      "attach",
+      "request",
+      "tool",
+      "archive"
     ],
     "exact_terms": [
       "ryoku doctor --report",
@@ -1917,7 +1956,11 @@
       "what channel and version am I running",
       "is there a safe health summary",
       "how many snapshots do I have",
-      "can I inspect updates without changing anything"
+      "can I inspect updates without changing anything",
+      "what is the quickest read-only check for my setup?",
+      "can I verify the installation health at a glance?",
+      "Show the health of my installed Ryoku system",
+      "Is my current Ryoku setup in good shape?"
     ],
     "keywords": [
       "status",
@@ -1925,12 +1968,17 @@
       "version",
       "channel",
       "updates",
-      "snapshots"
+      "snapshots",
+      "healthy",
+      "installation",
+      "check",
+      "summary"
     ],
     "exact_terms": [
       "ryoku status",
       "read-only status",
-      "installed version"
+      "installed version",
+      "system health check"
     ],
     "answer": "Run `ryoku status`. It is read-only and reports the active channel/config base, installed and available `ryoku-desktop` versions, waiting distribution packages, and snapshot count. On an unstable source checkout it also shows the deployed commit, how far behind it is, and whether the channel build passed.",
     "risk": "informational",
@@ -1950,7 +1998,7 @@
     "title": "Collect Details for a Missing Input Device",
     "examples": [
       "My touchpad is dead even before login",
-      "Ryoku cannot see my mouse buttons",
+      "Ryoku cannot see my pointing-device buttons",
       "A keyboard key stopped reporting",
       "The touchscreen rotates but coordinates do not",
       "Input settings show no device control",
@@ -1960,7 +2008,7 @@
       "input",
       "touchpad",
       "keyboard",
-      "mouse",
+      "pointer",
       "touchscreen",
       "missing",
       "hardware",
@@ -1988,16 +2036,16 @@
     "id": "input.settings",
     "title": "Change Mouse and Keyboard Behaviour",
     "examples": [
-      "How do I enable focus follows mouse?",
-      "Where is natural mouse scrolling?",
+      "How do I enable focus follows pointer?",
+      "Where is natural pointer scrolling?",
       "Can Num Lock start on at login?",
       "How do I swap Alt and Super?",
       "Where can I change pointer acceleration?",
-      "Como inverto a rolagem do mouse?"
+      "Como inverto a rolagem do cursor?"
     ],
     "keywords": [
       "input",
-      "mouse",
+      "pointer",
       "keyboard",
       "focus",
       "scroll",
@@ -2141,7 +2189,9 @@
       "why will the installer not continue to Review",
       "there is a red warning under my partitions",
       "the alongside layout is blocked",
-      "how do I fix the installer partition screen"
+      "how do I fix the installer partition screen",
+      "the installer is stuck while validating my partitions",
+      "Review never unlocks after I choose the storage layout"
     ],
     "keywords": [
       "installer",
@@ -2149,12 +2199,17 @@
       "layout",
       "partition",
       "tab",
-      "warning"
+      "warning",
+      "stuck",
+      "continue",
+      "storage",
+      "validation"
     ],
     "exact_terms": [
       "Disk layout",
       "Tab does nothing",
-      "red warning"
+      "red warning",
+      "layout validation"
     ],
     "answer": "Read the red warning on the installer's **Disk layout** step. Tab continues only after the layout is safe. Select a shrinkable partition and use Left/Right to make room, or create unallocated space in Windows first. A hibernated or BitLocker-locked Windows volume cannot be shrunk. On a dedicated disk, press Esc and choose **Erase whole disk** instead.",
     "risk": "destructive",
@@ -2249,7 +2304,9 @@
       "make my bind survive updates",
       "set Super+B to open Brave",
       "where do I rebind the session menu",
-      "como mudar os atalhos do teclado"
+      "como mudar os atalhos do teclado",
+      "I need to remap an action without using a pointer",
+      "which settings page edits keyboard bindings?"
     ],
     "keywords": [
       "keybind",
@@ -2258,12 +2315,17 @@
       "custom",
       "persist",
       "updates",
-      "apps"
+      "apps",
+      "keyboard",
+      "binding",
+      "edit",
+      "hub"
     ],
     "exact_terms": [
       "Ryoku Hub > Keybinds",
       "Custom shortcuts",
-      "App shortcuts"
+      "App shortcuts",
+      "edit keybinds"
     ],
     "answer": "Open Ryoku Hub > Keybinds. Use Shortcuts to rebind a shipped action, Apps > App shortcuts to change launcher roles, or Custom > Custom shortcuts to add a command. Hub changes live in Ryoku's neutral store, survive updates, and carry between supported compositors. For a raw compositor-only bind the GUI cannot express, use the Hub page's **FILES** chip to open `hypr/user.lua` or `niri/user.kdl`; unstable Wayfire uses `wayfire/user.ini`. Never edit generated rebind files.",
     "risk": "state-changing",
@@ -2374,7 +2436,7 @@
     ],
     "exact_terms": [
       "~/.local/share/applications",
-      ".desktop",
+      "desktop entry",
       "Flatpak app"
     ],
     "answer": "The launcher reads visible XDG `.desktop` entries and updates when that application list changes; there is no separate Ryoku app database to rebuild. Confirm the app has one valid, non-hidden entry in `~/.local/share/applications` or a system applications directory, then close and reopen Super+Space. AppImages must be integrated with a `.desktop` entry; duplicate entries produce duplicate launcher rows. A reinstall does not repair an invalid entry.",
@@ -2443,7 +2505,7 @@
       "monitor",
       "primary",
       "sddm",
-      "display",
+      "output",
       "login"
     ],
     "exact_terms": [
@@ -2581,7 +2643,13 @@
       "how do I find the update failure output",
       "what file has the shell crash details",
       "where is the latest Doctor report",
-      "which log should I inspect first"
+      "which log should I inspect first",
+      "show me the main log file locations",
+      "where can I find troubleshooting output after something breaks?",
+      "what troubleshooting files are available when something goes wrong?",
+      "where should I look for component-specific failure output?",
+      "Where are the diagnostic files for a broken Ryoku setup?",
+      "What logs should I check when Ryoku acts strangely?"
     ],
     "keywords": [
       "logs",
@@ -2589,12 +2657,17 @@
       "update",
       "doctor",
       "journal",
-      "troubleshoot"
+      "troubleshoot",
+      "paths",
+      "diagnostics",
+      "files",
+      "output"
     ],
     "exact_terms": [
       "ryoku-shell.log",
       "update-log.txt",
-      "doctor-report.txt"
+      "doctor-report.txt",
+      "log locations"
     ],
     "answer": "Use `~/.local/state/ryoku-shell.log` for shell surfaces, `~/.local/state/ryoku/update-log.txt` for the full updater output, `$XDG_RUNTIME_DIR/ryoku-update.json` for live progress, and `~/.local/state/ryoku/doctor-report.txt` for the latest Doctor report. SDDM uses `sudo journalctl -u sddm`; kernel faults use `journalctl -k`.",
     "risk": "informational",
@@ -2618,7 +2691,9 @@
       "how do I collect login manager logs",
       "which log should I attach for a login loop",
       "show the last SDDM messages",
-      "I already reproduced the login failure and need logs"
+      "I already reproduced the login failure and need logs",
+      "which service journal records sign-in failures?",
+      "where can I read display-manager error messages?"
     ],
     "keywords": [
       "sddm",
@@ -2626,12 +2701,17 @@
       "logs",
       "greeter",
       "login",
-      "collect"
+      "collect",
+      "manager",
+      "messages",
+      "errors",
+      "service"
     ],
     "exact_terms": [
       "journalctl -u sddm",
       "SDDM logs",
-      "login manager logs"
+      "login manager logs",
+      "display manager journal"
     ],
     "answer": "From a working terminal or a TTY opened with Ctrl+Alt+F2, run the read-only `sudo journalctl -u sddm -n 200`. Reproduce the failure first when possible so the newest lines cover it, then include only the relevant slice in the bug report. Remove any passwords, tokens or personal paths before posting. This card only collects the greeter log; use the login-screen diagnosis when you still need to separate SDDM from the selected desktop session.",
     "risk": "informational",
@@ -2653,7 +2733,9 @@
       "how do I restart the shell safely",
       "where are the latest Quickshell errors",
       "the sidebar does not draw after update",
-      "what should I run before sharing shell logs"
+      "what should I run before sharing shell logs",
+      "the shell journal no longer follows live output",
+      "why did the Quickshell log stop receiving lines?"
     ],
     "keywords": [
       "shell",
@@ -2661,12 +2743,19 @@
       "bar",
       "quickshell",
       "log",
-      "sidebar"
+      "sidebar",
+      "tail",
+      "follow",
+      "stale",
+      "entries",
+      "output",
+      "update"
     ],
     "exact_terms": [
       "ryoku reload",
       "ryoku-shell.log",
-      "shell not drawing"
+      "shell not drawing",
+      "stale shell log"
     ],
     "answer": "Run `ryoku reload`, then inspect `~/.local/state/ryoku-shell.log`. Reload restarts Ryoku's supervised shell surfaces and waits for them to stay up; it does not reload the active compositor's configuration. If the shell stays missing, run `ryoku doctor --check`; after a recent update, retry `ryoku update` or roll back to its pre-update snapshot.",
     "risk": "state-changing",
@@ -2723,7 +2812,7 @@
     "id": "network.bluetooth-manage",
     "title": "Pair, Connect, or Disconnect Bluetooth Devices",
     "examples": [
-      "Where do I pair Bluetooth headphones?",
+      "Where do I pair a Bluetooth headset?",
       "How can I reconnect my controller?",
       "The bar scans instead of connecting",
       "How do I turn the Bluetooth adapter on?",
@@ -2737,7 +2826,7 @@
       "disconnect",
       "scan",
       "controller",
-      "headphones",
+      "headset",
       "adapter"
     ],
     "exact_terms": [
@@ -3038,7 +3127,7 @@
       "bundles"
     ],
     "exact_terms": [
-      ">install",
+      "launcher >install",
       "Ryostore bundle",
       "install software"
     ],
@@ -3745,7 +3834,9 @@
       "can the greeter use a different skin",
       "the password field is hard to see",
       "how do I reskin SDDM safely",
-      "quero mudar a tela de login"
+      "quero mudar a tela de login",
+      "can I choose another design for the sign-in screen?",
+      "where are the sign-in visuals selected?"
     ],
     "keywords": [
       "lockscreen",
@@ -3753,12 +3844,18 @@
       "greeter",
       "skin",
       "theme",
-      "sddm"
+      "sddm",
+      "sign-in",
+      "screen",
+      "visual",
+      "select",
+      "appearance"
     ],
     "exact_terms": [
       "Ryoku Hub > Lockscreen",
       "Lock skin",
-      "SDDM theme"
+      "SDDM theme",
+      "login screen theme"
     ],
     "answer": "Open Ryoku Hub > Lockscreen > Lock skin and choose an installed skin; Browse RyoStore opens the lockscreen catalogue. Applying a skin changes both the in-session lock and the SDDM sign-in screen, so Ryoku may ask for your password. This swaps only the appearance, not your login method. Do not edit `/etc/sddm.conf.d` for an ordinary skin change.",
     "risk": "state-changing",
@@ -3779,7 +3876,11 @@
       "Where can I switch from QS Bar to Sumi?",
       "I want the monochrome side rail",
       "How do I put the colourful bar back?",
-      "¿Dónde cambio el estilo de la barra?"
+      "¿Dónde cambio el estilo de la barra?",
+      "Which bar preset takes up the least space?",
+      "Can I swap the panel design without switching rices?",
+      "Does Bar Studio have a space-saving layout?",
+      "Can I change just the bar design without loading another rice?"
     ],
     "keywords": [
       "bar",
@@ -3788,12 +3889,19 @@
       "sumi",
       "rail",
       "switch",
-      "installed"
+      "installed",
+      "panel",
+      "layout",
+      "compact",
+      "variant",
+      "preset"
     ],
     "exact_terms": [
       "Bar Studio",
       "QS Bar",
-      "Sumi"
+      "Sumi",
+      "panel style",
+      "bar variant"
     ],
     "answer": "Open `Ryoku Hub > Bar Studio` with Super+comma and choose an installed style from the style gallery. QS Bar is the full-colour bar; Sumi is the monochrome frame rail. The selected style applies live. Use **Browse RyoStore** on that page for more styles; do not hand-edit `shell.json`.",
     "risk": "state-changing",
@@ -4380,7 +4488,11 @@
       "what diagnostic output should I attach",
       "how can I help reproduce an installer bug",
       "should a broken feature go to GitHub",
-      "where do I report a security problem"
+      "where do I report a security problem",
+      "does ryoku debug remove credentials before I attach it?",
+      "can logs expose account details in a bug report?",
+      "what personal data should I remove from a support attachment?",
+      "is a debug archive safe to share outside the help channel?"
     ],
     "keywords": [
       "bug",
@@ -4390,13 +4502,25 @@
       "reproduce",
       "diagnostic",
       "security",
-      "github"
+      "github",
+      "privacy",
+      "secrets",
+      "credentials",
+      "public",
+      "attach",
+      "private",
+      "data",
+      "archive",
+      "sharing"
     ],
     "exact_terms": [
       "Ryoku bug report",
       "ryoku debug",
       "steps to reproduce",
-      "security vulnerability"
+      "security vulnerability",
+      "secrets-free output",
+      "private information",
+      "safe to share"
     ],
     "answer": "Open `github.com/Ryoku-dev/ryoku/issues` and include your edition/channel, hardware when relevant, exact steps, what happened and what you expected. Run the read-only `ryoku debug` and attach its secrets-free output; it contains the same diagnostics as `ryoku doctor --report`. Add the relevant log slice and screenshots when the visible result matters. Report vulnerabilities privately through GitHub's Security > Report a vulnerability, never in a public issue.",
     "risk": "informational",
@@ -4638,7 +4762,7 @@
       "what does ryoku materialize replace",
       "can I rebuild config without a full update",
       "why did my base file revert after materialize",
-      "does materialize preserve user edits"
+      "which override layer wins during ryoku materialize"
     ],
     "keywords": [
       "materialize",
@@ -4750,7 +4874,9 @@
       "where should persistent personal edits go",
       "does user.lua survive an update",
       "how do I customize a packaged config safely",
-      "which file owns this setting"
+      "which file owns this setting",
+      "what is the supported place for changes I want to keep?",
+      "will package refreshes replace my local configuration?"
     ],
     "keywords": [
       "edits",
@@ -4758,12 +4884,19 @@
       "config",
       "persistent",
       "update",
-      "owner"
+      "owner",
+      "upgrades",
+      "overwrite",
+      "custom",
+      "modifications",
+      "preserve",
+      "files"
     ],
     "exact_terms": [
       "ryoku owner",
       "user_edits",
-      "survive updates"
+      "survive updates",
+      "personal config changes"
     ],
     "answer": "Use Ryoku Hub for managed settings. On stable, the page's **FILES** chip shows the user-owned file to edit; general overrides go under `~/.config/ryoku/user_edits` at the path they mirror below `~/.config`. Hyprland uses `~/.config/hypr/user.lua`; niri uses `~/.config/niri/user.kdl`. On unstable, `ryoku owner <path>` reports the owner and supported override. Use `ryoku reset <relative-path>` to remove an overlay. Never edit `/usr/share/ryoku` or generated base files.",
     "risk": "informational",
@@ -5121,24 +5254,24 @@
     "id": "windows.focus-pointer",
     "title": "Make Focus Follow the Pointer",
     "examples": [
-      "focus windows when the mouse enters them",
-      "where is focus follows mouse",
-      "click to focus feels wrong",
+      "focus windows when the pointer enters them",
+      "where is focus follows pointer",
+      "raising a window before typing feels wrong",
       "hover should activate a window",
       "focus behavior keeps changing",
-      "quero focar a janela ao passar o mouse"
+      "quero focar a janela ao passar o cursor"
     ],
     "keywords": [
       "focus",
       "pointer",
-      "mouse",
+      "activation",
       "hover",
       "input",
       "window"
     ],
     "exact_terms": [
       "Focus behavior",
-      "focus follows mouse",
+      "focus follows pointer",
       "Ryoku Hub > Input"
     ],
     "answer": "Open `Ryoku Hub > Input > Focus behavior`, choose the pointer/focus mode, then save. The active compositor provider translates this neutral setting where supported. If it repeatedly reverts, run the read-only `ryoku doctor --check`. On stable, the page's **FILES** chip identifies the personal override seam—`~/.config/hypr/user.lua` or `~/.config/niri/user.kdl`; on unstable, `ryoku owner <path>` can report it. Never edit generated settings files.",

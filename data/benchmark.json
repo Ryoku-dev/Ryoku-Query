@@ -41,7 +41,7 @@
       "query": "My mouse died - where can I change Ryoku's keyboard shortcuts using only the keyboard?",
       "difficulty": "easy",
       "expected": "answer",
-      "intent_id": "settings.open-hub"
+      "intent_id": "keybinds.custom"
     },
     {
       "id": "prod-007",
@@ -111,7 +111,7 @@
       "query": "Before sharing a diagnostic archive publicly, how can I find out whether it contains private data?",
       "difficulty": "paraphrase",
       "expected": "answer",
-      "intent_id": "health.doctor-report"
+      "intent_id": "support.bug-report"
     },
     {
       "id": "prod-017",
@@ -202,7 +202,7 @@
       "query": "I just downloaded a new background and want the desktop colors to follow it. Which controls handle both the image and matching appearance?",
       "difficulty": "contextual",
       "expected": "answer",
-      "intent_id": "shell.wallpaper-theme"
+      "intent_id": "theme.palette"
     },
     {
       "id": "prod-ambig-doctor",

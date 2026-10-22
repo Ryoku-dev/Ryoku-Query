@@ -237,6 +237,13 @@ class KnowledgeIndexTests(unittest.TestCase):
                     keywords=["close window"],
                 ),
                 gui_entry(
+                    "setting:keyboard/swap-alt-super",
+                    "Swap Alt and Super",
+                    "Ryoku Hub > Keyboard > Swap Alt and Super",
+                    "Swap the Alt and Super modifier keys.",
+                    keywords=["swap", "alt", "super", "modifier"],
+                ),
+                gui_entry(
                     "action:screen-recording",
                     "Screen recording",
                     "Ryoku Hub > Capture > Screen recording",
@@ -259,6 +266,10 @@ class KnowledgeIndexTests(unittest.TestCase):
         ]
 
         self.assertEqual(close_results[0].title, "Close window")
+        self.assertNotIn(
+            "setting:keyboard/swap-alt-super",
+            [result.id for result in close_results],
+        )
         self.assertEqual(recording_results[0].id, "action:screen-recording")
 
     def test_minimize_power_and_restart_vocabulary_retrieve_gui_entries(self):
@@ -282,6 +293,13 @@ class KnowledgeIndexTests(unittest.TestCase):
                     keywords=["power off", "shut down"],
                 ),
                 gui_entry(
+                    "setting:desktop/disable-blur",
+                    "Disable blur",
+                    "Ryoku Hub > Desktop > Effects > Blur",
+                    "Turn off the background blur effect.",
+                    keywords=["turn off", "disable", "blur"],
+                ),
+                gui_entry(
                     "action:restart",
                     "Restart",
                     "Ryoku Hub > Session > Restart",
@@ -296,6 +314,7 @@ class KnowledgeIndexTests(unittest.TestCase):
             ("how do I minimise this window", "keybind:hide-window"),
             ("como desligar o computador", "action:power-off"),
             ("cómo apagar el equipo", "action:power-off"),
+            ("¿Dónde encuentro ahora la opción de apagar?", "action:power-off"),
             ("como reiniciar", "action:restart"),
         )
         for query, expected_id in cases:

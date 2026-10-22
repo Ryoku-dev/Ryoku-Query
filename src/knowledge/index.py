@@ -42,6 +42,7 @@ class _SearchItem:
     terms: frozenset[str]
     exact_terms: tuple[str, ...] = ()
     channels: frozenset[str] = frozenset()
+    is_keybind: bool = False
 
 
 _SYNONYM_GROUPS = (
@@ -53,7 +54,6 @@ _SYNONYM_GROUPS = (
     ("settings", "hub", "control panel", "preferences"),
     ("keybind", "shortcut", "hotkey", "keyboard shortcut"),
     ("screenshot", "screen capture", "print screen", "snip"),
-    ("alt+f4", "alt f4", "close"),
     ("minimize", "minimise", "minimizar", "hide", "scratchpad"),
     ("record", "recording", "recorder"),
     ("notification", "notif", "toast"),
@@ -126,7 +126,11 @@ _SUPPORT_GLOSSARY = (
     (("rede", "red", "wifi"), ("network", "wifi")),
     (("não funciona", "nao funciona", "no funciona"), ("not working",)),
     (("mudar", "trocar", "alterar", "cambiar"), ("change",)),
-    (("desativar", "desligar", "desactivar", "apagar"), ("turn off", "disable")),
+    (("desativar", "desactivar"), ("turn off", "disable")),
+    (
+        ("desligar", "apagar"),
+        ("turn off", "disable", "power off", "shut down"),
+    ),
     (("ativar", "ligar", "activar"), ("turn on", "enable")),
     (("tela preta", "pantalla negra"), ("black screen",)),
     (("rato", "ratón"), ("mouse", "cursor")),
@@ -175,6 +179,27 @@ def _build_synonyms() -> dict[str, tuple[str, ...]]:
 
 _SYNONYMS = _build_synonyms()
 _PATH_SEPARATOR_RE = re.compile(r"\s*>\s*")
+_ALT_F4_RE = re.compile(r"\balt\s*(?:\+|-|\s)\s*f4\b", re.IGNORECASE)
+_KEYBOARD_CHORD_RE = re.compile(
+    r"\b(?:ctrl|control|alt|shift|super|meta|win|cmd|command)"
+    r"(?:\s*(?:\+|-)\s*|\s+)"
+    r"(?:f(?:[1-9]|1[0-2])|[a-z0-9]|comma|space|enter|escape|esc|tab|delete)\b",
+    re.IGNORECASE,
+)
+_KEYBIND_WORDS = frozenset(
+    {
+        "keybind",
+        "keybinds",
+        "shortcut",
+        "shortcuts",
+        "hotkey",
+        "hotkeys",
+        "atalho",
+        "atalhos",
+        "atajo",
+        "atajos",
+    }
+)
 _COMPOSITOR_NAMES = {
     "hyprland": "Hyprland",
     "niri": "niri",
@@ -214,13 +239,28 @@ def _has_token_phrase(query: tuple[str, ...], phrase: tuple[str, ...]) -> bool:
 
 
 def _query_expansion(query: str) -> tuple[tuple[str, ...], str]:
-    raw_query = _raw_tokens(_without_accents(query))
+    normalized_query = _without_accents(query)
+    raw_query = _raw_tokens(normalized_query)
     english_terms: list[str] = []
     for phrases, terms in _GLOSSARY_MATCHES:
         if any(_has_token_phrase(raw_query, phrase) for phrase in phrases):
             english_terms.extend(term for term in terms if term not in english_terms)
-    embedding_text = " ".join((query, *english_terms))
+    lexical_query = normalized_query
+    if _ALT_F4_RE.search(normalized_query):
+        english_terms.extend(
+            term for term in ("close", "window") if term not in english_terms
+        )
+        lexical_query = _ALT_F4_RE.sub(" ", lexical_query)
+    embedding_text = " ".join((lexical_query, *english_terms))
     return _expanded_tokens(embedding_text), embedding_text
+
+
+def _has_keybind_intent(query: str) -> bool:
+    normalized_query = _without_accents(query)
+    return bool(
+        _KEYBIND_WORDS.intersection(_raw_tokens(normalized_query))
+        or _KEYBOARD_CHORD_RE.search(normalized_query)
+    )
 
 
 def _read_collection(path: Path | None, key: str) -> list[dict[str, Any]]:
@@ -358,6 +398,7 @@ class KnowledgeIndex:
                     tokens,
                     frozenset(tokens),
                     channels=frozenset(channel.lower() for channel in channels),
+                    is_keybind=entry.get("kind") == "keybind",
                 )
             )
 
@@ -462,6 +503,7 @@ class KnowledgeIndex:
         lexical_rank = {index: rank for rank, index in enumerate(lexical_order, 1)}
         semantic_rank = {index: rank for rank, index in enumerate(semantic_order, 1)}
         raw_query = _raw_tokens(normalize_text(query))
+        keybind_query = _has_keybind_intent(query)
 
         candidates: list[tuple[float, int]] = []
         for index, item in enumerate(self._items):
@@ -477,6 +519,8 @@ class KnowledgeIndex:
             )
             if exact_matches:
                 score += 0.05 + 0.005 * (exact_matches - 1)
+            if keybind_query and item.is_keybind:
+                score += 0.01
             candidates.append((score, index))
 
         unique_candidates: list[tuple[float, int]] = []
