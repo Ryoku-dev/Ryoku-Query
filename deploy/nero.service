@@ -1,0 +1,26 @@
+[Unit]
+Description=Nero Discord support bot
+Wants=network-online.target nero-llm.service
+After=network-online.target nero-llm.service
+
+[Service]
+Type=simple
+User=nero
+Group=nero
+WorkingDirectory=/opt/nero/app
+EnvironmentFile=/etc/nero/nero.env
+ExecStart=/opt/nero/venv/bin/python -B bot.py
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=full
+ProtectHome=read-only
+ReadWritePaths=/var/lib/nero
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+
+[Install]
+WantedBy=multi-user.target

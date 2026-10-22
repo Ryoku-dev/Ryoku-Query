@@ -89,6 +89,30 @@ python tools/build_gui_map.py --repo <stable ryoku> --unstable <unstable ryoku> 
 python tools/build_docs_chunks.py --docs <ryoku-docs> --repo <ryoku> --out data/docs_chunks.json
 ```
 
+## Deploy
+
+`deploy/` contains the local LLM bridge, bot, and daily refresh systemd units. The
+refresh keeps shallow stable, unstable, and docs checkouts, initializes Prowl in
+the stable checkout, validates regenerated knowledge, and restarts Nero only
+when the knowledge content changes.
+
+The live host sets these keys in `/etc/nero/nero.env`:
+
+```dotenv
+GUI_MAP_PATH=/var/lib/nero/knowledge/gui_map.json
+DOCS_CHUNKS_PATH=/var/lib/nero/knowledge/docs_chunks.json
+RYOKU_REPO_PATH=/var/lib/nero/sources/ryoku-stable
+HELP_FORUM_ID=...
+SUPPORT_CHANNEL_ID=...
+NERO_LLM_MODEL=...
+```
+
+Run a refresh manually with:
+
+```bash
+sudo systemctl start nero-refresh.service
+```
+
 
 ## Run
 

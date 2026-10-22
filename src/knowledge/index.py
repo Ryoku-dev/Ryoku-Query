@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import math
 import re
+import unicodedata
 from collections import Counter
 from dataclasses import dataclass
 from pathlib import Path
@@ -40,6 +41,7 @@ class _SearchItem:
     tokens: tuple[str, ...]
     terms: frozenset[str]
     exact_terms: tuple[str, ...] = ()
+    channels: frozenset[str] = frozenset()
 
 
 _SYNONYM_GROUPS = (
@@ -56,6 +58,62 @@ _SYNONYM_GROUPS = (
     ("update", "upgrade"),
     ("theme", "colors", "colours", "palette", "matugen"),
 )
+_SUPPORT_GLOSSARY = (
+    (
+        ("configurações", "configuracoes", "configuração", "ajustes", "configuración"),
+        ("settings", "configuration"),
+    ),
+    (("papel de parede", "fundo", "plano de fundo", "fondo de pantalla", "fondo"), ("wallpaper",)),
+    (("barra",), ("bar",)),
+    (("dock",), ("dock",)),
+    (("lançador", "lanzador", "menu de apps"), ("launcher",)),
+    (("atalho", "atalhos", "atajo", "atajos", "tecla", "teclas"), ("shortcut", "keybind")),
+    (("captura de tela", "print", "captura de pantalla"), ("screenshot",)),
+    (("área de transferência", "portapapeles"), ("clipboard",)),
+    (("tela de bloqueio", "pantalla de bloqueo"), ("lockscreen",)),
+    (("tela de login", "inicio de sesión"), ("login",)),
+    (("atualizar", "atualização", "actualizar", "actualización"), ("update",)),
+    (("instalar", "instalação", "instalación"), ("install",)),
+    (("tema",), ("theme",)),
+    (("cores", "colores"), ("colors",)),
+    (("janela", "janelas", "ventana", "ventanas"), ("window",)),
+    (("desfoque", "desenfoque"), ("blur",)),
+    (("escurecer", "oscurecer"), ("darken",)),
+    (("escuro", "oscuro"), ("dark",)),
+    (("tela", "pantalla", "resolução", "resolución"), ("display", "monitor")),
+    (("som", "áudio", "sonido"), ("sound", "audio")),
+    (("rede", "red", "wifi"), ("network", "wifi")),
+    (("não funciona", "nao funciona", "no funciona"), ("not working",)),
+    (("mudar", "trocar", "alterar", "cambiar"), ("change",)),
+    (("desativar", "desligar", "desactivar", "apagar"), ("turn off", "disable")),
+    (("ativar", "ligar", "activar"), ("turn on", "enable")),
+    (("tela preta", "pantalla negra"), ("black screen",)),
+    (("rato", "ratón"), ("mouse", "cursor")),
+    (("teclado",), ("keyboard",)),
+    (("ícones", "iconos"), ("icons",)),
+    (("fonte", "fuente"), ("font",)),
+    (("notificação", "notificación"), ("notification",)),
+)
+
+
+def _without_accents(text: str) -> str:
+    decomposed = unicodedata.normalize("NFKD", normalize_text(text))
+    return "".join(character for character in decomposed if not unicodedata.combining(character))
+
+
+def _build_glossary_matches() -> tuple[
+    tuple[tuple[tuple[str, ...], ...], tuple[str, ...]], ...
+]:
+    matches = []
+    for phrases, english_terms in _SUPPORT_GLOSSARY:
+        normalized_phrases = tuple(
+            dict.fromkeys(_raw_tokens(_without_accents(phrase)) for phrase in phrases)
+        )
+        matches.append((normalized_phrases, english_terms))
+    return tuple(matches)
+
+
+_GLOSSARY_MATCHES = _build_glossary_matches()
 
 
 def _build_synonyms() -> dict[str, tuple[str, ...]]:
@@ -91,7 +149,7 @@ def normalize_path(path: str) -> str:
 
 def _expanded_tokens(text: str) -> tuple[str, ...]:
     expanded: list[str] = []
-    for token in _tokens(normalize_text(text)):
+    for token in _tokens(_without_accents(text)):
         expanded.extend(_SYNONYMS.get(token, (token,)))
     return tuple(expanded)
 
@@ -112,6 +170,16 @@ def _has_token_phrase(query: tuple[str, ...], phrase: tuple[str, ...]) -> bool:
         return False
     width = len(phrase)
     return any(query[index : index + width] == phrase for index in range(len(query) - width + 1))
+
+
+def _query_expansion(query: str) -> tuple[tuple[str, ...], str]:
+    raw_query = _raw_tokens(_without_accents(query))
+    english_terms: list[str] = []
+    for phrases, terms in _GLOSSARY_MATCHES:
+        if any(_has_token_phrase(raw_query, phrase) for phrase in phrases):
+            english_terms.extend(term for term in terms if term not in english_terms)
+    embedding_text = " ".join((query, *english_terms))
+    return _expanded_tokens(embedding_text), embedding_text
 
 
 def _read_collection(path: Path | None, key: str) -> list[dict[str, Any]]:
@@ -242,7 +310,15 @@ class KnowledgeIndex:
                 risk=None,
                 score=0.0,
             )
-            items.append(_SearchItem(evidence, match_text, tokens, frozenset(tokens)))
+            items.append(
+                _SearchItem(
+                    evidence,
+                    match_text,
+                    tokens,
+                    frozenset(tokens),
+                    channels=frozenset(channel.lower() for channel in channels),
+                )
+            )
 
             if entry.get("kind") in {"page", "setting"} and path:
                 known_paths.add(normalize_path(path))
@@ -326,12 +402,12 @@ class KnowledgeIndex:
     def search(self, query: str, k: int = 10) -> list[Evidence]:
         if k <= 0 or not self._items:
             return []
-        query_tokens = _expanded_tokens(query)
+        query_tokens, embedding_text = _query_expansion(query)
         if not query_tokens:
             return []
         query_terms = frozenset(query_tokens)
         lexical = self._bm25(query_tokens)
-        query_vector = _normalized_rows(self._encoder.encode([query]), 1)[0]
+        query_vector = _normalized_rows(self._encoder.encode([embedding_text]), 1)[0]
         semantic = np.nan_to_num(self._vectors @ query_vector, copy=False)
 
         lexical_order = sorted(
@@ -361,6 +437,43 @@ class KnowledgeIndex:
             if exact_matches:
                 score += 0.05 + 0.005 * (exact_matches - 1)
             candidates.append((score, index))
+
+        unique_candidates: list[tuple[float, int]] = []
+        gui_candidates: dict[tuple[str, str], tuple[float, int]] = {}
+        both_channels = {"stable", "unstable"}
+        for candidate in candidates:
+            score, index = candidate
+            item = self._items[index]
+            evidence = item.evidence
+            if evidence.kind != "gui":
+                unique_candidates.append(candidate)
+                continue
+            identity = (
+                normalize_text(evidence.title),
+                normalize_path(evidence.path or ""),
+            )
+            current = gui_candidates.get(identity)
+            if current is None:
+                gui_candidates[identity] = candidate
+                continue
+            current_score, current_index = current
+            current_item = self._items[current_index]
+            preference = (
+                both_channels.issubset(item.channels),
+                score,
+                float(semantic[index]),
+            )
+            current_preference = (
+                both_channels.issubset(current_item.channels),
+                current_score,
+                float(semantic[current_index]),
+            )
+            if preference > current_preference or (
+                preference == current_preference
+                and evidence.id < current_item.evidence.id
+            ):
+                gui_candidates[identity] = candidate
+        candidates = unique_candidates + list(gui_candidates.values())
 
         candidates.sort(
             key=lambda pair: (

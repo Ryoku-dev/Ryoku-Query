@@ -1,0 +1,21 @@
+[Unit]
+Description=Refresh Nero Ryoku knowledge
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=nero
+Group=nero
+Environment=HOME=/var/lib/nero
+ExecStart=/opt/nero/app/deploy/nero-refresh.sh
+ExecStartPost=+/bin/sh -c 'if [ -e /var/lib/nero/knowledge/.changed ]; then rm -f /var/lib/nero/knowledge/.changed; systemctl try-restart nero.service; fi'
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=full
+ProtectHome=read-only
+ReadWritePaths=/var/lib/nero
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6

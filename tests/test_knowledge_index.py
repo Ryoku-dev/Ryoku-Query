@@ -172,6 +172,96 @@ class KnowledgeIndexTests(unittest.TestCase):
         self.assertIn("(Hyprland/niri only)", gui_results[0].text)
         self.assertIn("(unstable channel only)", gui_results[0].text)
 
+    def test_portuguese_glossary_retrieves_english_gui_entry(self):
+        encoder = FakeEncoder()
+        index = self.build(
+            [card("desktop.effects", "effects")],
+            [
+                gui_entry(
+                    "setting:desktop/windowBlur",
+                    "Window blur",
+                    "Ryoku Hub > Desktop > General > Window blur",
+                    "Turn off blur behind open windows.",
+                    keywords=["blur", "window"],
+                )
+            ],
+            encoder=encoder,
+        )
+
+        gui_results = [
+            result
+            for result in index.search("como desativar o desfoque atrás das janelas")
+            if result.kind == "gui"
+        ]
+
+        self.assertEqual([result.id for result in gui_results], ["setting:desktop/windowBlur"])
+        self.assertIn("blur", encoder.calls[-1][0])
+        self.assertIn("window", encoder.calls[-1][0])
+
+    def test_spanish_glossary_retrieves_english_gui_entry(self):
+        encoder = FakeEncoder()
+        index = self.build(
+            [card("desktop.wallpaper", "desktop")],
+            [
+                gui_entry(
+                    "setting:desktop/wallpaper",
+                    "Wallpaper",
+                    "Ryoku Hub > Desktop > Wallpaper",
+                    "Change the desktop background.",
+                    keywords=["wallpaper", "background"],
+                )
+            ],
+            encoder=encoder,
+        )
+
+        gui_results = [
+            result
+            for result in index.search("cómo cambiar el fondo de pantalla")
+            if result.kind == "gui"
+        ]
+
+        self.assertEqual([result.id for result in gui_results], ["setting:desktop/wallpaper"])
+        self.assertIn("wallpaper", encoder.calls[-1][0])
+        self.assertIn("change", encoder.calls[-1][0])
+
+    def test_gui_duplicates_prefer_both_channels_before_quota(self):
+        entries = [
+            gui_entry(
+                "setting:display/scale-stable",
+                "Display scale",
+                "Ryoku Hub > Displays > Scale",
+                "Change the display scale.",
+                channels=["stable"],
+            ),
+            gui_entry(
+                "setting:display/scale-all",
+                " display SCALE ",
+                " ryoku hub>displays > scale ",
+                "Change the display scale.",
+                channels=["stable", "unstable"],
+            ),
+            *[
+                gui_entry(
+                    f"setting:network/alternative-{index}",
+                    f"Network alternative {index}",
+                    f"Ryoku Hub > Network > Alternative {index}",
+                    "Change another network setting.",
+                )
+                for index in range(5)
+            ],
+        ]
+        index = self.build([card("network.help")], entries)
+
+        gui_results = [
+            result for result in index.search("network", k=20) if result.kind == "gui"
+        ]
+        result_ids = {result.id for result in gui_results}
+
+        self.assertEqual(len(gui_results), 6)
+        self.assertIn("setting:display/scale-all", result_ids)
+        self.assertNotIn("setting:display/scale-stable", result_ids)
+        self.assertIn("setting:network/alternative-4", result_ids)
+
     def test_known_paths_include_full_setting_and_page_prefix(self):
         full_path = " Ryoku Hub> Desktop > General > Deck frost "
         index = self.build(
