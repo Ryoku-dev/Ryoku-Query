@@ -15,6 +15,13 @@ _GUI_CUES = (
 )
 _INLINE_CODE = re.compile(r"(?<!`)`([^`\n]+)`(?!`)")
 _CODE_BLOCK = re.compile(r"```", re.MULTILINE)
+_KEYBIND_PREFIX = re.compile(
+    r"^\s*(?:super|ctrl|alt|shift|print|mod)(?:\b|\s*\+)",
+    re.IGNORECASE,
+)
+_KEYBIND_CHORD = re.compile(
+    r"^\s*[^+\s`]+\s*\+\s*[^+\s`]+(?:\s*\+\s*[^+\s`]+)*\s*$"
+)
 
 
 def _first_match(patterns: tuple[re.Pattern[str], ...], text: str) -> int | None:
@@ -22,13 +29,26 @@ def _first_match(patterns: tuple[re.Pattern[str], ...], text: str) -> int | None
     return min(positions) if positions else None
 
 
+def _is_keybind(value: str) -> bool:
+    return bool(_KEYBIND_PREFIX.match(value) or _KEYBIND_CHORD.fullmatch(value))
+
+
 def _gui_precedes_command(text: str) -> bool:
-    command_positions = [match.start() for match in _INLINE_CODE.finditer(text)]
+    inline_matches = list(_INLINE_CODE.finditer(text))
+    keybind_positions = [
+        match.start() for match in inline_matches if _is_keybind(match.group(1))
+    ]
+    command_positions = [
+        match.start() for match in inline_matches if not _is_keybind(match.group(1))
+    ]
     command_positions.extend(match.start() for match in _CODE_BLOCK.finditer(text))
     if not command_positions:
         return True
     gui_position = _first_match(_GUI_CUES, text)
-    return gui_position is not None and gui_position < min(command_positions)
+    gui_positions = keybind_positions + (
+        [gui_position] if gui_position is not None else []
+    )
+    return bool(gui_positions) and min(gui_positions) < min(command_positions)
 
 
 def deterministic_checks(answer_text: str, expect: dict[str, Any]) -> dict[str, Any]:

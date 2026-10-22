@@ -230,6 +230,7 @@ async def _evaluate_case(
             latency_ms = answer.latency_ms
             evidence_ids = list(answer.evidence_ids)
             card_id = answer.card_id
+            note = answer.note
         else:
             if retriever is None:
                 raise RuntimeError("baseline mode requires a retriever")
@@ -237,6 +238,7 @@ async def _evaluate_case(
             text, route, card_id = _baseline_answer(retriever, case.question)
             latency_ms = round((time.perf_counter() - started) * 1000)
             evidence_ids = []
+            note = ""
 
         deterministic = deterministic_checks(text, case.expect)
         if judge_client is None:
@@ -260,6 +262,7 @@ async def _evaluate_case(
                 "latency_ms": latency_ms,
                 "evidence_ids": evidence_ids,
                 "card_id": card_id,
+                "note": note,
             },
             "deterministic": deterministic,
             "judge": judge,
@@ -282,6 +285,9 @@ def _summarize(mode: str, results: list[dict[str, Any]]) -> dict[str, Any]:
     verdicts = Counter(row["judge"]["verdict"] for row in results)
     routes = Counter(row["answer"]["route"] for row in results)
     latencies = [int(row["answer"]["latency_ms"]) for row in results]
+    notes = Counter(
+        row["answer"]["note"] for row in results if row["answer"]["note"]
+    )
     judged = any(row["judge"]["verdict"] != "not_run" for row in results)
     failing = [
         row["id"]
@@ -303,6 +309,7 @@ def _summarize(mode: str, results: list[dict[str, Any]]) -> dict[str, Any]:
             "rate": _rate(gui_passed, len(gui_rows)),
         },
         "route_counts": dict(sorted(routes.items())),
+        "note_counts": dict(sorted(notes.items())),
         "latency_ms": {
             "p50": _nearest_rank(latencies, 0.50),
             "p95": _nearest_rank(latencies, 0.95),
@@ -334,6 +341,13 @@ def _print_summary(summary: dict[str, Any]) -> None:
             ", ".join(f"{key}={value}" for key, value in summary["route_counts"].items()),
         ),
         (
+            "Notes",
+            ", ".join(
+                f"{key}={value}" for key, value in summary["note_counts"].items()
+            )
+            or "none",
+        ),
+        (
             "Latency (ms)",
             f"p50={latency['p50']} p95={latency['p95']} max={latency['max']}",
         ),
@@ -352,7 +366,7 @@ def _print_summary(summary: dict[str, Any]) -> None:
 def _parser() -> argparse.ArgumentParser:
     forwarded_socket = (
         "Reach the bridge on ally with: ssh -o ControlPath=/tmp/ally-%C -N "
-        "-L /tmp/nero-llm.sock:/run/nero-llm/llm.sock ally\\n"
+        "-L /tmp/nero-llm.sock:/run/nero-llm/llm.sock ally\n"
         "Then pass --socket /tmp/nero-llm.sock."
     )
     parser = argparse.ArgumentParser(
@@ -366,7 +380,7 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--socket",
         default=os.getenv("NERO_LLM_SOCKET", "/run/nero-llm/llm.sock"),
-        help="LLM bridge Unix socket (default: %(default)s). " + forwarded_socket,
+        help="LLM bridge Unix socket (default: %(default)s). " + forwarded_socket.replace("%", "%%"),
     )
     parser.add_argument("--judge-model", default="gpt-6.1-sol")
     parser.add_argument("--no-judge", action="store_true")

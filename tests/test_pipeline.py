@@ -169,8 +169,56 @@ class PipelineTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(answer.card_id, self.card.id)
         self.assertEqual(cloud.calls[0][1], 450)
 
+    async def test_known_hub_path_followed_by_comma_is_accepted(self):
+        cloud = FakeCloud(
+            LLMResult(
+                "ok",
+                text=(
+                    "Open Ryoku Hub > Desktop > General > Deck frost, "
+                    "then turn it off."
+                ),
+            )
+        )
+        pipeline, _ = self.pipeline(cloud)
+
+        answer = await pipeline.answer("How do I turn off frost?")
+
+        self.assertEqual(answer.route, "cloud")
+
+    async def test_arrow_breadcrumb_is_validated(self):
+        cloud = FakeCloud(
+            LLMResult(
+                "ok",
+                text="Open Ryoku Hub → Desktop › General » Deck frost and turn it off.",
+            )
+        )
+        pipeline, _ = self.pipeline(cloud)
+
+        answer = await pipeline.answer("How do I turn off frost?")
+
+        self.assertEqual(answer.route, "cloud")
+
+    async def test_evidence_citations_are_stripped(self):
+        cloud = FakeCloud(
+            LLMResult(
+                "ok",
+                text=(
+                    "Open Ryoku Hub > Desktop > General > Deck frost and "
+                    "turn it off. [E7]"
+                ),
+            )
+        )
+        pipeline, _ = self.pipeline(cloud)
+
+        answer = await pipeline.answer("How do I turn off frost?")
+
+        self.assertEqual(answer.route, "cloud")
+        self.assertNotIn("[E7]", answer.text)
+
     async def test_cloud_clarify_prefix_returns_only_the_question(self):
-        cloud = FakeCloud(LLMResult("ok", text="CLARIFY: Are you using niri or Hyprland?"))
+        cloud = FakeCloud(
+            LLMResult("ok", text="clarify: Are you using niri or Hyprland?")
+        )
         pipeline, _ = self.pipeline(cloud)
 
         answer = await pipeline.answer("Where is that setting?")
@@ -179,7 +227,7 @@ class PipelineTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(answer.text, "Are you using niri or Hyprland?")
 
     async def test_cloud_no_answer_returns_help_post_guidance(self):
-        cloud = FakeCloud(LLMResult("ok", text="NO_ANSWER"))
+        cloud = FakeCloud(LLMResult("ok", text="NO_ANSWER."))
         pipeline, _ = self.pipeline(cloud)
 
         answer = await pipeline.answer("Can Ryoku make coffee?")
@@ -199,6 +247,19 @@ class PipelineTests(unittest.IsolatedAsyncioTestCase):
 
         self.assertEqual(answer.route, "card")
         self.assertEqual(answer.text, self.card.answer)
+        self.assertTrue(answer.note.startswith("invalid:hub_path:"))
+
+    async def test_invented_ryoku_settings_path_falls_back_to_card(self):
+        cloud = FakeCloud(
+            LLMResult("ok", text="Open Ryoku Settings > Advanced > Rashin.")
+        )
+        pipeline, _ = self.pipeline(cloud)
+
+        answer = await pipeline.answer("How do I turn off frost?")
+
+        self.assertEqual(answer.route, "card")
+        self.assertEqual(answer.text, self.card.answer)
+        self.assertTrue(answer.note.startswith("invalid:hub_path:"))
 
     async def test_invented_ryoku_verb_falls_back_to_card(self):
         cloud = FakeCloud(LLMResult("ok", text="Run `ryoku teleport` to fix it."))
@@ -208,6 +269,7 @@ class PipelineTests(unittest.IsolatedAsyncioTestCase):
 
         self.assertEqual(answer.route, "card")
         self.assertEqual(answer.text, self.card.answer)
+        self.assertEqual(answer.note, "invalid:command:ryoku teleport")
 
     async def test_unavailable_cloud_falls_back_to_card(self):
         cloud = FakeCloud(LLMResult("unavailable", error="busy"))
@@ -218,6 +280,20 @@ class PipelineTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(answer.route, "card")
         self.assertEqual(answer.text, self.card.answer)
         self.assertEqual(answer.model, cloud.model)
+        self.assertEqual(answer.note, "cloud_unavailable:busy")
+
+    async def test_disagreeing_card_fallback_lists_related_evidence(self):
+        cloud = FakeCloud(
+            LLMResult("ok", text="Open Ryoku Hub > Advanced > Rashin.")
+        )
+        evidence = [gui_evidence()]
+        pipeline, _ = self.pipeline(cloud, evidence=evidence)
+
+        answer = await pipeline.answer("How do I turn off frost?")
+
+        self.assertEqual(answer.route, "no_match")
+        self.assertEqual(answer.note, "card_disagrees")
+        self.assertIn("#help", answer.text)
 
     async def test_unavailable_cloud_without_card_lists_related_evidence(self):
         cloud = FakeCloud(LLMResult("unavailable", error="timeout"))
@@ -243,6 +319,7 @@ class PipelineTests(unittest.IsolatedAsyncioTestCase):
         self.assertIn("Wallpaper picker — Super+W", answer.text)
         self.assertIn("Desktop page — Ryoku Hub > Desktop", answer.text)
         self.assertIn("#help", answer.text)
+        self.assertEqual(answer.note, "cloud_unavailable:timeout")
 
     async def test_short_follow_up_searches_with_previous_user_turn(self):
         cloud = FakeCloud(LLMResult("unavailable", error="offline"))

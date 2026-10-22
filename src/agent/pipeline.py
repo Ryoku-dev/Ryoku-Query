@@ -28,6 +28,7 @@ class PipelineAnswer:
     risk: str | None
     model: str | None
     latency_ms: int
+    note: str = ""
 
 
 _SAFETY_TEXT = (
@@ -40,16 +41,25 @@ _COMMANDS = frozenset(
     {"ryoku", "ryoku-shell", "ryoku-hub", "ryogami", "ryoku-rashin", "ryostore"}
 )
 _INLINE_CODE = re.compile(r"`([^`\n]+)`")
-_HUB_PATH = re.compile(r"ryoku\s+hub\s*>\s*[^\n`]+", re.IGNORECASE)
+_EVIDENCE_CITATION = re.compile(r"\s*\[E\d+\]", re.IGNORECASE)
+_HUB_PATH = re.compile(
+    r"ryoku\s+(?:hub|settings)\s*>\s*[^\n`]*?"
+    r"(?=\n|`|ryoku\s+(?:hub|settings)\s*>|$)",
+    re.IGNORECASE,
+)
+_NO_ANSWER = re.compile(r"^[\s\W]*NO_ANSWER\b", re.IGNORECASE)
+_CLARIFY = re.compile(r"^\s*CLARIFY\s*:\s*(.*)", re.IGNORECASE | re.DOTALL)
+_ARROW_TRANSLATION = str.maketrans({"→": ">", "›": ">", "»": ">"})
 
 
 def normalize_path(path: str) -> str:
     parts = []
-    for part in path.split(">"):
+    for part in path.translate(_ARROW_TRANSLATION).split(">"):
         cleaned = normalize_text(part).strip(" \t.,:;!?()[]{}'\"")
         if cleaned:
             parts.append(cleaned)
-    return " > ".join(parts)
+    normalized = " > ".join(parts)
+    return re.sub(r"^ryoku settings\b", "ryoku hub", normalized)
 
 
 def _top_card(decision: RetrievalDecision) -> SupportCard | None:
@@ -110,45 +120,65 @@ def _evidence_text(evidence: list[Evidence]) -> str:
     return normalize_text("\n".join(values))
 
 
-def _path_is_known(candidate: str, known_paths: frozenset[str], evidence_text: str) -> bool:
+def _path_is_known(candidate: str, known_paths: frozenset[str]) -> bool:
     normalized = normalize_path(candidate)
     if not normalized:
         return False
     for path in known_paths:
         known = normalize_path(path)
-        if normalized == known or normalized.startswith(f"{known} >") or normalized.startswith(
-            f"{known} "
-        ):
+        if not known or not normalized.startswith(known):
+            continue
+        if len(normalized) == len(known) or not normalized[len(known)].isalnum():
             return True
-    return normalized in normalize_path(evidence_text)
+    return False
 
 
-def _valid_model_text(
+def _model_text_error(
     text: str,
     evidence: list[Evidence],
     known_paths: frozenset[str],
-) -> bool:
+) -> str | None:
     if not text or len(text) > 1900:
-        return False
+        return "invalid:length"
     lowered = text.lower()
     if any(phrase in lowered for phrase in _FORBIDDEN_OUTPUT):
-        return False
+        return "invalid:forbidden"
 
     packed_text = _evidence_text(evidence)
-    for match in _HUB_PATH.finditer(text):
-        if not _path_is_known(match.group(0), known_paths, packed_text):
-            return False
+    validation_text = text.translate(_ARROW_TRANSLATION)
+    for match in _HUB_PATH.finditer(validation_text):
+        candidate = match.group(0).strip()
+        if not _path_is_known(candidate, known_paths):
+            return f"invalid:hub_path:{candidate[:60]}"
 
     for inline in _INLINE_CODE.findall(text):
-        words = inline.strip().split()
+        command = inline.strip()
+        words = command.split()
         if not words or words[0].lower() not in _COMMANDS:
             continue
         if len(words) < 2:
-            return False
+            return f"invalid:command:{command}"
         first_two = normalize_text(" ".join(words[:2]))
         if first_two not in packed_text:
-            return False
-    return True
+            return f"invalid:command:{command}"
+    return None
+
+
+def _fallback_card(
+    decision: RetrievalDecision,
+    indexed_evidence: list[Evidence],
+) -> tuple[SupportCard | None, bool]:
+    card: SupportCard | None = None
+    if decision.kind == "answer":
+        card = decision.card
+    elif decision.kind == "clarify" and decision.alternatives:
+        card = decision.alternatives[0]
+    if card is None:
+        return None, False
+    top_card_ids = [
+        item.id for item in indexed_evidence if item.kind == "card"
+    ][:4]
+    return (card, f"card:{card.id}" in top_card_ids)
 
 
 def _card_for_evidence(index: KnowledgeIndex, item: Evidence) -> SupportCard | None:
@@ -227,6 +257,7 @@ class SupportPipeline:
             docs_url: str | None = None,
             risk: str | None = None,
             card_id: str | None = None,
+            note: str = "",
         ) -> PipelineAnswer:
             items = evidence or []
             return PipelineAnswer(
@@ -239,6 +270,7 @@ class SupportPipeline:
                 risk=card.risk if card is not None else risk,
                 model=model,
                 latency_ms=max(0, int((time.monotonic() - started) * 1000)),
+                note=note,
             )
 
         if requires_safety_confirmation(query):
@@ -273,6 +305,7 @@ class SupportPipeline:
             )
 
         used_model: str | None = None
+        fallback_note = "cloud_unavailable:not_configured"
         if self.cloud is not None:
             used_model = self.cloud.model
             messages = build_messages(
@@ -284,8 +317,8 @@ class SupportPipeline:
             )
             result = await self.cloud.complete(messages, max_tokens=450)
             if result.status == "ok":
-                text = result.text.strip()
-                if text == "NO_ANSWER":
+                text = _EVIDENCE_CITATION.sub("", result.text).strip()
+                if _NO_ANSWER.match(text):
                     return finish(
                         _related_text(evidence),
                         "no_match",
@@ -294,8 +327,9 @@ class SupportPipeline:
                         model=used_model,
                         docs_url=_first_docs_url(evidence),
                     )
-                if text.startswith("CLARIFY:"):
-                    question = text.removeprefix("CLARIFY:").strip()
+                clarify = _CLARIFY.match(text)
+                if clarify is not None:
+                    question = clarify.group(1).strip()
                     if question:
                         return finish(
                             question,
@@ -305,30 +339,28 @@ class SupportPipeline:
                             model=used_model,
                             docs_url=_first_docs_url(evidence),
                         )
-                elif _valid_model_text(text, evidence, self.index.known_paths()):
-                    title, card_id, risk = _answer_metadata(self.index, evidence)
-                    return finish(
-                        text,
-                        success_route,
-                        title,
-                        evidence,
-                        model=used_model,
-                        docs_url=_first_docs_url(evidence),
-                        risk=risk,
-                        card_id=card_id,
-                    )
+                    fallback_note = "invalid:length"
+                else:
+                    fallback_note = _model_text_error(
+                        text, evidence, self.index.known_paths()
+                    ) or ""
+                    if not fallback_note:
+                        title, card_id, risk = _answer_metadata(self.index, evidence)
+                        return finish(
+                            text,
+                            success_route,
+                            title,
+                            evidence,
+                            model=used_model,
+                            docs_url=_first_docs_url(evidence),
+                            risk=risk,
+                            card_id=card_id,
+                        )
+            else:
+                fallback_note = f"cloud_unavailable:{result.error or 'unavailable'}"
 
-        if decision.kind == "answer" and decision.card is not None:
-            return finish(
-                decision.card.answer,
-                "card",
-                decision.card.title,
-                evidence,
-                decision.card,
-                model=used_model,
-            )
-        if decision.kind == "clarify" and decision.alternatives:
-            card = decision.alternatives[0]
+        card, agrees = _fallback_card(decision, indexed_evidence)
+        if card is not None and agrees:
             return finish(
                 card.answer,
                 "card",
@@ -336,7 +368,10 @@ class SupportPipeline:
                 evidence,
                 card,
                 model=used_model,
+                note=fallback_note,
             )
+        if card is not None:
+            fallback_note = "card_disagrees"
         return finish(
             _related_text(evidence),
             "no_match",
@@ -344,4 +379,5 @@ class SupportPipeline:
             evidence,
             model=used_model,
             docs_url=_first_docs_url(evidence),
+            note=fallback_note,
         )
