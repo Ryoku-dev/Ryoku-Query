@@ -123,16 +123,44 @@ class PipelineTests(unittest.IsolatedAsyncioTestCase):
         )
         return SupportPipeline(index, cloud, prowl), index
 
-    async def test_safety_never_calls_cloud(self):
+    async def test_destructive_request_uses_safety_route_without_cloud(self):
         cloud = FakeCloud(LLMResult("ok", text="unsafe"))
         pipeline, _ = self.pipeline(cloud)
 
-        answer = await pipeline.answer("Should I wipe everything and start over?")
+        answer = await pipeline.answer("wipe everything and reinstall")
 
         self.assertEqual(answer.route, "safety")
         self.assertIn("whether the desktop or a TTY still works", answer.text)
         self.assertEqual(cloud.calls, [])
         self.assertIsNone(answer.model)
+
+    async def test_consequence_question_about_update_calls_cloud(self):
+        cloud = FakeCloud(
+            LLMResult(
+                "ok",
+                text="Open Ryoku Hub > Desktop > General > Deck frost and turn it off.",
+            )
+        )
+        pipeline, _ = self.pipeline(cloud)
+
+        answer = await pipeline.answer("Will an update erase hypr/user.lua?")
+
+        self.assertEqual(answer.route, "cloud")
+        self.assertEqual(len(cloud.calls), 1)
+
+    async def test_portuguese_consequence_question_calls_cloud(self):
+        cloud = FakeCloud(
+            LLMResult(
+                "ok",
+                text="Open Ryoku Hub > Desktop > General > Deck frost and turn it off.",
+            )
+        )
+        pipeline, _ = self.pipeline(cloud)
+
+        answer = await pipeline.answer("vai apagar minhas configurações?")
+
+        self.assertEqual(answer.route, "cloud")
+        self.assertEqual(len(cloud.calls), 1)
 
     async def test_destructive_card_is_verbatim_and_never_calls_cloud(self):
         reviewed = "Use the recovery screen, then choose the reviewed rollback entry."

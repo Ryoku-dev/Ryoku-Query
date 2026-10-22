@@ -224,6 +224,88 @@ class KnowledgeIndexTests(unittest.TestCase):
         self.assertIn("wallpaper", encoder.calls[-1][0])
         self.assertIn("change", encoder.calls[-1][0])
 
+    def test_alt_f4_and_portuguese_recorder_retrieve_exact_gui_entries(self):
+        index = self.build(
+            [card("desktop.actions", "desktop")],
+            [
+                gui_entry(
+                    "keybind:close-window",
+                    "Close window",
+                    "Ryoku Hub > Keybinds > Close window",
+                    "Closes the active window.",
+                    kind="keybind",
+                    keywords=["close window"],
+                ),
+                gui_entry(
+                    "action:screen-recording",
+                    "Screen recording",
+                    "Ryoku Hub > Capture > Screen recording",
+                    "Record the screen.",
+                    kind="action",
+                    keywords=["record", "recording"],
+                ),
+            ],
+        )
+
+        close_results = [
+            result
+            for result in index.search("what's the alt+f4 equivalent")
+            if result.kind == "gui"
+        ]
+        recording_results = [
+            result
+            for result in index.search("como abro o gravador de tela")
+            if result.kind == "gui"
+        ]
+
+        self.assertEqual(close_results[0].title, "Close window")
+        self.assertEqual(recording_results[0].id, "action:screen-recording")
+
+    def test_minimize_power_and_restart_vocabulary_retrieve_gui_entries(self):
+        index = self.build(
+            [card("desktop.actions", "desktop")],
+            [
+                gui_entry(
+                    "keybind:hide-window",
+                    "Hide window",
+                    "Ryoku Hub > Keybinds > Hide window",
+                    "Moves the active window to the scratchpad.",
+                    kind="keybind",
+                    keywords=["hide", "scratchpad"],
+                ),
+                gui_entry(
+                    "action:power-off",
+                    "Power off",
+                    "Ryoku Hub > Session > Power off",
+                    "Shut down the computer.",
+                    kind="action",
+                    keywords=["power off", "shut down"],
+                ),
+                gui_entry(
+                    "action:restart",
+                    "Restart",
+                    "Ryoku Hub > Session > Restart",
+                    "Reboot the computer.",
+                    kind="action",
+                    keywords=["restart", "reboot"],
+                ),
+            ],
+        )
+
+        cases = (
+            ("how do I minimise this window", "keybind:hide-window"),
+            ("como desligar o computador", "action:power-off"),
+            ("cómo apagar el equipo", "action:power-off"),
+            ("como reiniciar", "action:restart"),
+        )
+        for query, expected_id in cases:
+            with self.subTest(query=query):
+                gui_results = [
+                    result for result in index.search(query) if result.kind == "gui"
+                ]
+                self.assertEqual(gui_results[0].id, expected_id)
+
+
     def test_gui_duplicates_prefer_both_channels_before_quota(self):
         entries = [
             gui_entry(

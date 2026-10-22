@@ -50,6 +50,51 @@ _HUB_PATH = re.compile(
 _NO_ANSWER = re.compile(r"^[\s\W]*NO_ANSWER\b", re.IGNORECASE)
 _CLARIFY = re.compile(r"^\s*CLARIFY\s*:\s*(.*)", re.IGNORECASE | re.DOTALL)
 _ARROW_TRANSLATION = str.maketrans({"→": ">", "›": ">", "»": ">"})
+_QUESTION_FILLER = (
+    r"(?:(?:(?:hi|hello|hey|oi|olá|ola|hola)(?:\s+(?:nero|there))?"
+    r"|well|so|okay|ok|um|uh|sorry)\b[\s,!.-]*"
+    r"|(?:quick question|just wondering|i was wondering|please)\b[\s,:-]*)*"
+)
+_AUXILIARY_QUESTION = re.compile(
+    rf"^{_QUESTION_FILLER}"
+    r"(?:will|would|does|do|did|is|are|can|could|should|won['’]?t|"
+    r"doesn['’]?t|isn['’]?t)\b",
+    re.IGNORECASE,
+)
+_DESTRUCTIVE_REQUEST = re.compile(
+    rf"^{_QUESTION_FILLER}(?:"
+    r"(?:how\s+(?:do|can|should)\s+(?:i|we)|"
+    r"(?:can|could|should|would|will|do)\s+(?:i|we|you))\s+"
+    r"(?:please\s+)?"
+    r")?(?:wipe|erase|delete|remove|reset|reinstall|format)\b",
+    re.IGNORECASE,
+)
+_CONSEQUENCE_PHRASES = (
+    "will it",
+    "does it",
+    "would it",
+    "is it safe",
+    "going to",
+    "keep my",
+    "lose my",
+    "vai apagar",
+    "vai perder",
+    "va a borrar",
+    "se borra",
+    "perderé",
+    "perdere",
+)
+
+
+def _asks_about_consequences(query: str) -> bool:
+    normalized = normalize_text(query)
+    if _DESTRUCTIVE_REQUEST.match(normalized):
+        return False
+    return bool(_AUXILIARY_QUESTION.match(normalized)) or any(
+        phrase in normalized for phrase in _CONSEQUENCE_PHRASES
+    )
+
+
 
 
 def normalize_path(path: str) -> str:
@@ -273,7 +318,7 @@ class SupportPipeline:
                 note=note,
             )
 
-        if requires_safety_confirmation(query):
+        if requires_safety_confirmation(query) and not _asks_about_consequences(query):
             return finish(_SAFETY_TEXT, "safety", "I need more context")
 
         decision = self.index.card_decision(query)
