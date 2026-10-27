@@ -32,6 +32,9 @@ class Evidence:
     url: str | None
     risk: str | None
     score: float
+    channels: frozenset[str] = frozenset()
+    stable_version: str | None = None
+    source_commit: str | None = None
 
 
 @dataclass(frozen=True)
@@ -263,12 +266,22 @@ def _has_keybind_intent(query: str) -> bool:
     )
 
 
-def _read_collection(path: Path | None, key: str) -> list[dict[str, Any]]:
+def _read_collection(
+    path: Path | None, key: str
+) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     if path is None or not path.exists():
-        return []
+        return [], {}
     value = json.loads(path.read_text(encoding="utf-8"))
-    rows = value.get(key, []) if isinstance(value, dict) else []
-    return [row for row in rows if isinstance(row, dict)] if isinstance(rows, list) else []
+    if not isinstance(value, dict):
+        return [], {}
+    rows = value.get(key, [])
+    collection = (
+        [row for row in rows if isinstance(row, dict)]
+        if isinstance(rows, list)
+        else []
+    )
+    metadata = value.get("generated_from", {})
+    return collection, metadata if isinstance(metadata, dict) else {}
 
 
 def _joined(*parts: Any) -> str:
@@ -306,6 +319,8 @@ class KnowledgeIndex:
         docs_chunks: list[dict[str, Any]],
         encoder: Any,
         *,
+        gui_metadata: dict[str, Any] | None = None,
+        docs_metadata: dict[str, Any] | None = None,
         max_cards: int = 4,
         max_gui: int = 6,
         max_docs: int = 3,
@@ -319,6 +334,41 @@ class KnowledgeIndex:
             "gui": max(0, max_gui),
             "doc": max(0, max_docs),
         }
+        gui_metadata = gui_metadata or {}
+        docs_metadata = docs_metadata or {}
+        gui_version = str(gui_metadata.get("stable_version", "")).strip()
+        docs_version = str(docs_metadata.get("stable_version", "")).strip()
+        self._stable_version = gui_version or docs_version or None
+        self._stable_commit = (
+            str(
+                gui_metadata.get("stable_commit")
+                or gui_metadata.get("commit")
+                or docs_metadata.get("stable_commit")
+                or docs_metadata.get("repo_commit")
+                or ""
+            ).strip()
+            or None
+        )
+        gui_commit = (
+            str(
+                gui_metadata.get("stable_commit")
+                or gui_metadata.get("commit")
+                or ""
+            ).strip()
+            or None
+        )
+        gui_unstable_commit = (
+            str(gui_metadata.get("unstable_commit") or "").strip() or None
+        )
+        docs_commit = str(docs_metadata.get("docs_commit", "")).strip() or None
+        docs_stable_commit = (
+            str(
+                docs_metadata.get("stable_commit")
+                or docs_metadata.get("repo_commit")
+                or ""
+            ).strip()
+            or None
+        )
 
         items: list[_SearchItem] = []
         for card in cards:
@@ -372,6 +422,7 @@ class KnowledgeIndex:
                 if isinstance(raw_channels, list)
                 else ("stable", "unstable")
             )
+            channel_set = frozenset(channel.lower() for channel in channels)
             open_value = entry.get("open")
             open_text = open_value.strip() if isinstance(open_value, str) else ""
             evidence_text = f"{path}: {desc}"
@@ -390,6 +441,13 @@ class KnowledgeIndex:
                 url=None,
                 risk=None,
                 score=0.0,
+                channels=channel_set,
+                stable_version=gui_version or None,
+                source_commit=(
+                    gui_unstable_commit
+                    if channel_set == {"unstable"}
+                    else gui_commit
+                ),
             )
             items.append(
                 _SearchItem(
@@ -397,16 +455,13 @@ class KnowledgeIndex:
                     match_text,
                     tokens,
                     frozenset(tokens),
-                    channels=frozenset(channel.lower() for channel in channels),
+                    channels=channel_set,
                     is_keybind=entry.get("kind") == "keybind",
                 )
             )
 
-            if entry.get("kind") in {"page", "setting"} and path:
+            if entry.get("kind") in {"page", "setting", "surface"} and ">" in path:
                 known_paths.add(normalize_path(path))
-                parts = [part.strip() for part in path.split(">")]
-                if len(parts) >= 2 and normalize_text(parts[0]) == "ryoku hub":
-                    known_paths.add(normalize_path(" > ".join(parts[:2])))
 
         for chunk in docs_chunks:
             title = str(chunk.get("title", "")).strip()
@@ -417,6 +472,10 @@ class KnowledgeIndex:
             match_text = _joined(title, text)
             tokens = _expanded_tokens(match_text)
             url_value = chunk.get("url")
+            source = str(chunk.get("source", "")).strip()
+            source_commit = (
+                docs_commit if source.startswith("docs/") else docs_stable_commit
+            )
             evidence = Evidence(
                 kind="doc",
                 id=chunk_id,
@@ -426,6 +485,9 @@ class KnowledgeIndex:
                 url=url_value if isinstance(url_value, str) else None,
                 risk=None,
                 score=0.0,
+                channels=frozenset({"stable"}),
+                stable_version=docs_version or gui_version or None,
+                source_commit=source_commit,
             )
             items.append(_SearchItem(evidence, match_text, tokens, frozenset(tokens)))
 
@@ -435,7 +497,26 @@ class KnowledgeIndex:
             for kind in ("card", "gui", "doc")
         }
         self._known_paths = frozenset(known_paths)
-        self._lengths = np.asarray([len(item.tokens) for item in items], dtype=np.float32)
+        stable_cli_usage: dict[str, list[str]] = {}
+        generated_usage = str(docs_metadata.get("stable_cli_usage", ""))
+        for line in generated_usage.splitlines():
+            match = re.match(r"\s*([a-z][a-z0-9-]*)\b", line)
+            if match is not None and match.group(1) != "usage":
+                command = f"ryoku {match.group(1)}"
+                stable_cli_usage.setdefault(command, []).append(line)
+        for chunk in docs_chunks:
+            title = str(chunk.get("title", "")).strip()
+            text = str(chunk.get("text", "")).strip()
+            normalized = normalize_text(f"{title}\n{text}")
+            for command in re.findall(r"\bryoku\s+[a-z][a-z0-9-]*", normalized):
+                stable_cli_usage.setdefault(command, []).append(f"{title}\n{text}")
+        self._stable_cli_usage = {
+            command: normalize_text("\n".join(values))
+            for command, values in stable_cli_usage.items()
+        }
+        self._lengths = np.asarray(
+            [len(item.tokens) for item in items], dtype=np.float32
+        )
         self._average_length = float(np.mean(self._lengths)) if items else 1.0
         self._term_counts = tuple(Counter(item.tokens) for item in items)
         frequencies: Counter[str] = Counter()
@@ -460,9 +541,16 @@ class KnowledgeIndex:
         encoder: Any,
     ) -> KnowledgeIndex:
         cards = load_support_cards(support_path)
-        gui_entries = _read_collection(gui_map_path, "entries")
-        docs_chunks = _read_collection(docs_path, "chunks")
-        return cls(cards, gui_entries, docs_chunks, encoder)
+        gui_entries, gui_metadata = _read_collection(gui_map_path, "entries")
+        docs_chunks, docs_metadata = _read_collection(docs_path, "chunks")
+        return cls(
+            cards,
+            gui_entries,
+            docs_chunks,
+            encoder,
+            gui_metadata=gui_metadata,
+            docs_metadata=docs_metadata,
+        )
 
     @property
     def cards(self) -> tuple[SupportCard, ...]:
@@ -472,6 +560,15 @@ class KnowledgeIndex:
     def kind_counts(self) -> dict[str, int]:
         return dict(self._kind_counts)
 
+    @property
+    def stable_version(self) -> str | None:
+        return self._stable_version
+
+    @property
+    def stable_commit(self) -> str | None:
+        return self._stable_commit
+
+
     def card_decision(self, query: str) -> RetrievalDecision:
         return self._retriever.retrieve(query)
 
@@ -480,6 +577,10 @@ class KnowledgeIndex:
 
     def known_paths(self) -> frozenset[str]:
         return self._known_paths
+
+    def stable_cli_usage(self, command: str) -> str:
+        return self._stable_cli_usage.get(normalize_text(command), "")
+
 
     def search(self, query: str, k: int = 10) -> list[Evidence]:
         if k <= 0 or not self._items:
@@ -584,6 +685,9 @@ class KnowledgeIndex:
                     url=evidence.url,
                     risk=evidence.risk,
                     score=score,
+                    channels=evidence.channels,
+                    stable_version=evidence.stable_version,
+                    source_commit=evidence.source_commit,
                 )
             )
             if len(results) >= k:

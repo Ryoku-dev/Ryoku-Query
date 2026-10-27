@@ -74,10 +74,10 @@
     "question": "How can I place another desktop widget?",
     "history": [],
     "expect": {
-      "must_mention_any": [["Ryoku Settings > Widgets", "Ryoku Hub > Widgets", "Widgets"], ["widget"]],
+      "must_mention_any": [["Edit desktop", "Stage Editor"], ["Widgets", "widget"]],
       "must_not_mention": ["~/.config/quickshell"],
       "gui_first": true,
-      "ideal": "On stable, open Ryoku Settings > Widgets, select the widget, enable it, and use its placement controls. On the unstable channel, right-click the wallpaper and choose Edit desktop to add, drag, and resize widgets directly. Additional widgets can come from Ryostore. (source: stable GUI map; docs/faq.mdx for unstable)"
+      "ideal": "Right-click bare wallpaper, choose Edit desktop, then open Widgets in the Stage Editor. Add the widget, drag or resize its frame, and open Settings for its own controls; Super+Shift+D opens the Widgets catalogue directly. Placement is stored per display. (source: docs/stage.md)"
     },
     "source": "nero-exchange",
     "verdict_then": "none",
@@ -88,10 +88,10 @@
     "question": "Which setting changes the launcher's typeface?",
     "history": [],
     "expect": {
-      "must_mention_any": [["Ryoku Settings > General", "General"], ["System font", "font"]],
+      "must_mention_any": [["Ryoku Settings > General > Region & fonts", "General > Region & fonts"], ["System font", "font"]],
       "must_not_mention": ["edit the launcher QML"],
       "gui_first": true,
-      "ideal": "Open Ryoku Settings > General and change System font; the system font is used by the shell, including the launcher. On unstable-dev this control is grouped under General > Region & fonts. (source: ryoku/hub/quickshell/schema/GlobalPage.js)"
+      "ideal": "Open Ryoku Settings > General > Region & fonts and change System font; that desktop-wide preference is used by the shell, including the launcher. Terminal font and interface scale are separate controls on the same page. (source: ryoku/hub/quickshell/schema/GlobalPage.js)"
     },
     "source": "nero-exchange",
     "verdict_then": "incorrect",
@@ -116,10 +116,10 @@
     "question": "How do I join the testing channel?",
     "history": [],
     "expect": {
-      "must_mention_any": [["Ryoku Settings > Updates", "Updates"], ["ryoku track testing", "ryoku track unstable-dev"]],
-      "must_not_mention": ["git checkout unstable-dev"],
+      "must_mention_any": [["ryoku track unstable"], ["unstable", "stable"]],
+      "must_not_mention": ["ryoku track testing", "ryoku track unstable-dev", "git checkout unstable-dev"],
       "gui_first": true,
-      "ideal": "On stable, use the channel control in Ryoku Settings > Updates, or run `ryoku track testing` (also accepted as `ryoku track unstable-dev`), then update normally. Do not use `ryoku track unstable` on stable; that spelling is accepted by the unstable channel's CLI. (source: stable ryoku/cli)"
+      "ideal": "Run `ryoku track unstable` to follow new development; later `ryoku update` continues on that source lane. Return to signed release packages with `ryoku track stable`. Switching does not require reinstalling an ISO. (source: stable docs/cli.md and ryoku/cli/main.go)"
     },
     "source": "nero-exchange",
     "verdict_then": "none",
@@ -217,7 +217,7 @@
       "must_mention_any": [["Super+K", "Mod + K"], ["lista de atalhos", "cheatsheet", "Kit"]],
       "must_not_mention": ["binds.lua"],
       "gui_first": true,
-      "ideal": "No canal estável, pressione Super+K para abrir a lista de atalhos ativa da máquina; o mesmo atalho a fecha. No canal instável, essa tela se chama Kit. (source: stable GUI map; docs/keybindings.mdx for unstable)"
+      "ideal": "Pressione Super+K para abrir o Kit, que mostra os atalhos efetivos da máquina na aba Keys e também reúne Commands, Phone, Dev tools e Typing test. O mesmo atalho fecha a tela. (source: docs/compositors.md)"
     },
     "source": "nero-exchange",
     "verdict_then": "incorrect",
@@ -371,7 +371,7 @@
       "must_mention_any": [["AI agent"], ["Ryoku Settings > Rashin", "Ryoku Hub > Rashin", "dashboard"], ["vault"]],
       "must_not_mention": ["cloud-only"],
       "gui_first": true,
-      "ideal": "Rashin is Ryoku's local AI agent layer. On stable, open Ryoku Settings > Rashin to set up Hermes and open its dashboard; its on-disk knowledge vault maps the machine for agents. On the unstable channel, Alt+Space opens quick Ask and Super+Alt+Space opens the longer Agent/Rashin window. (source: stable GUI map; docs/rashin.mdx for unstable)"
+      "ideal": "Rashin is Ryoku's local AI agent layer. Open Ryoku Settings > Rashin to set it up and open its dashboard; its on-disk knowledge vault maps the machine for agents. Alt+Space opens quick Ask and Super+Alt+Space opens or focuses the longer Agent/Rashin window. (source: docs/rashin.md)"
     },
     "source": "nero-exchange",
     "verdict_then": "incorrect",
@@ -578,10 +578,10 @@
     "question": "Where is the wallpaper depth control now?",
     "history": [],
     "expect": {
-      "must_mention_any": [["right-click", "wallpaper"], ["Depth", "Parallax", "Depth settings"]],
+      "must_mention_any": [["right-click", "Edit desktop"], ["Stage Editor", "Depth"]],
       "must_not_mention": ["Ryoku Hub > Widgets"],
       "gui_first": true,
-      "ideal": "On stable, right-click the wallpaper, open Depth or Parallax, and use Depth settings… for the full controls. On the unstable channel, right-click the wallpaper and choose Edit desktop; depth and parallax moved into the desktop editor there. (source: stable desktop menu; docs/settings.mdx for unstable)"
+      "ideal": "Right-click bare wallpaper, choose Edit desktop, then open Depth in the Stage Editor. Choose Plain, Depth, Parallax, or Spatial and press Generate or Update when ready; choosing a mode alone does not start processing. (source: docs/stage.md)"
     },
     "source": "help-thread",
     "verdict_then": null,
@@ -623,7 +623,7 @@
       "must_mention_any": [["Super+M", "Mod + M"], ["visualizer", "visualiser"]],
       "must_not_mention": ["kill cava permanently"],
       "gui_first": true,
-      "ideal": "Press Super+M to toggle the desktop audio visualizer. On stable, its placement and style controls are under Ryoku Settings > Desktop > Visualizer. On the unstable channel, those richer controls are available while editing the desktop; Super+Shift+M only changes whether it sits over windows. (source: stable GUI map; docs/keybindings.mdx for unstable)"
+      "ideal": "Press Super+M to toggle the desktop audio visualizer. Super+Alt+M opens the Stage Editor's Visualizer catalogue, where each instance can be moved, resized, rotated, and given its own look and motion; Super+Shift+M changes whether it sits above or behind windows. (source: docs/stage.md)"
     },
     "source": "help-thread",
     "verdict_then": null,
@@ -679,7 +679,7 @@
       "must_mention_any": [["Ryoku Settings > Updates", "Updates"], ["ryoku status"]],
       "must_not_mention": ["force reinstall"],
       "gui_first": true,
-      "ideal": "Check Ryoku Settings > Updates or run the read-only `ryoku status`; it compares the installed desktop with what the active channel offers. No offered revision means there is nothing to install, not that the updater is broken. On unstable-dev, status also reports whether the channel build/check gate is still pending. (source: docs/updates.mdx)"
+      "ideal": "Check Ryoku Settings > Updates or run the read-only `ryoku status`; it compares the installed desktop with what the active channel offers. No offered revision means there is nothing to install, not that the updater is broken. On the unstable source lane, status also reports the checkout and its channel gate. (source: docs/cli.md)"
     },
     "source": "help-thread",
     "verdict_then": null,
@@ -847,7 +847,7 @@
       "must_mention_any": [["Super+Space", "Mod + Space"], ["Super+K", "Mod + K"]],
       "must_not_mention": ["Alt+F2"],
       "gui_first": true,
-      "ideal": "Press Super+Space and type to launch an app. On stable, Super+K opens the keybind cheatsheet; on the unstable channel that screen is called Kit. F1 inside the launcher explains its search prefixes. (source: stable GUI map; docs/keybindings.mdx for unstable)"
+      "ideal": "Press Super+Space and type to launch an app. Super+K opens Kit, whose Keys tab lists the effective shortcuts; F1 inside the launcher explains its search prefixes. (source: docs/launcher.md and docs/compositors.md)"
     },
     "source": "general",
     "verdict_then": null,
@@ -886,10 +886,10 @@
     "question": "Do I need Arch installed before Ryoku?",
     "history": [],
     "expect": {
-      "must_mention_any": [["ISO", "Arch", "CachyOS"], ["Arch-based", "Debian-based", "convert", "existing"]],
+      "must_mention_any": [["ISO", "Arch", "CachyOS", "Void"], ["Fedora", "existing-system", "installer"]],
       "must_not_mention": ["archinstall is required"],
       "gui_first": false,
-      "ideal": "No. Stable provides signed stock-Arch and CachyOS ISO variants that install the base system and desktop. On an existing x86_64 Arch-based or Debian-based system, the in-place converter is available instead; stable does not offer Void or Fedora ISOs or converter targets. (source: stable installation/iso profile and ryoku-shell-installer)"
+      "ideal": "No. Ryoku v1 provides signed Arch and CachyOS ISOs, plus an experimental Void glibc ISO. Existing supported Arch, CachyOS, Void, and mutable Fedora 44/45 systems can use the script installer; Fedora has no ISO. (source: stable README.md and docs/install-without-iso.md)"
     },
     "source": "general",
     "verdict_then": null,
@@ -914,10 +914,10 @@
     "question": "Como abro o gravador de tela integrado?",
     "history": [],
     "expect": {
-      "must_mention_any": [["Super+U", "Utilities"], ["Screen Recorder", "gpu-screen-recorder"]],
+      "must_mention_any": [["Super+Shift+S", "Ryoshot"], ["Record", "gravar", "gravação"]],
       "must_not_mention": ["OBS is required"],
       "gui_first": true,
-      "ideal": "No canal estável, pressione Super+U, abra Utilities e escolha Screen Recorder; o backend é `gpu-screen-recorder`, com qualidade, FPS e codec em Ryoku Settings > Recording. No canal instável, Super+Shift+S abre a barra de captura Ryoshot, que também oferece gravação. (source: stable package profile and GUI map; docs/apps.mdx for unstable)"
+      "ideal": "Pressione Super+Shift+S para abrir a barra de captura Ryoshot e escolha Record; depois selecione região, janela ou monitor e inicie. Qualidade, FPS, codec, áudio e cursor ficam em Ryoku Settings > Recording, com gpu-screen-recorder como backend. (source: docs/sidebars.md and docs/ui-ux.md)"
     },
     "source": "general",
     "verdict_then": null,
@@ -977,6 +977,118 @@
     },
     "source": "general",
     "verdict_then": null,
+    "lang": "en"
+  },
+  {
+    "id": "real.v1.wallpaper-restore",
+    "question": "My chosen wallpaper is missing after the next login. What should I check?",
+    "history": [],
+    "expect": {
+      "must_mention_any": [["Restore wallpaper on startup"], ["ryoku doctor --check", "Ryogami"]],
+      "must_not_mention": ["reinstall Ryoku"],
+      "gui_first": true,
+      "ideal": "Open Ryogami settings and make sure Restore wallpaper on startup is enabled. Start with `ryoku doctor --check`; if it reports the Ryogami service or a retired wallpaper daemon covering it, apply the offered Doctor repair and reopen Super+W. (source: stable Ryogami settings and docs/ryogami.md)"
+    },
+    "source": "nero-exchange",
+    "verdict_then": "incorrect",
+    "lang": "en"
+  },
+  {
+    "id": "real.v1.display-persistence",
+    "question": "How do I keep my monitor scale after unplugging and reconnecting it?",
+    "history": [],
+    "expect": {
+      "must_mention_any": [["Ryoku Settings > Displays", "Ryoku Hub > Displays"], ["Scale", "Apply"]],
+      "must_not_mention": ["edit monitors.lua"],
+      "gui_first": true,
+      "ideal": "Open Ryoku Settings > Displays, choose the output, set Scale, and use Apply. Ryoku keeps the per-machine layout for login and reconnect; generated monitor files are not the place for ordinary edits. (source: stable GUI map and docs/cli.md)"
+    },
+    "source": "nero-exchange",
+    "verdict_then": "incorrect",
+    "lang": "en"
+  },
+  {
+    "id": "real.v1.desktop-widget-editing",
+    "question": "Is direct desktop widget editing available in the stable release?",
+    "history": [],
+    "expect": {
+      "must_mention_any": [["Edit desktop", "Stage Editor"], ["drag", "resize", "Widgets"]],
+      "must_not_mention": ["unstable-only", "unstable only"],
+      "gui_first": true,
+      "ideal": "Yes. Right-click bare wallpaper, choose Edit desktop, then open Widgets in the Stage Editor. Add or select a widget, drag and resize its frame, and open its Settings; placement is kept per display. (source: docs/stage.md)"
+    },
+    "source": "nero-exchange",
+    "verdict_then": "incorrect",
+    "lang": "en"
+  },
+  {
+    "id": "real.v1.dock-interaction",
+    "question": "Where do I adjust the dock while seeing and clicking it in the desktop preview?",
+    "history": [],
+    "expect": {
+      "must_mention_any": [["Edit desktop", "Stage Editor"], ["Dock", "desktop preview"]],
+      "must_not_mention": ["QS Bar Settings > Dock"],
+      "gui_first": true,
+      "ideal": "Right-click bare wallpaper, choose Edit desktop, then open Dock. The Stage Editor is the dock's settings surface, and the dock stays visible and clickable inside the desktop preview while you change design, placement, behavior, and pins. (source: docs/stage.md and docs/ui-ux.md)"
+    },
+    "source": "nero-exchange",
+    "verdict_then": "incorrect",
+    "lang": "en"
+  },
+  {
+    "id": "real.v1.lockscreen-animation",
+    "question": "Does reduced motion turn off the default lock screen windup?",
+    "history": [],
+    "expect": {
+      "must_mention_any": [["Ryoku Settings > Lockscreen", "Ryoku Hub > Lockscreen"], ["qylock", "Clockwork", "Orbital", "theme"]],
+      "must_not_mention": ["Reduce motion disables the lockscreen windup", "edit the managed theme files"],
+      "gui_first": true,
+      "ideal": "No. Choose and preview the lockscreen design in Ryoku Settings > Lockscreen. Clockwork/Orbital's windup belongs to that qylock theme, not compositor motion or the shell's Reduce motion setting; choose a calmer design rather than editing managed theme files. (source: ryoku/lockscreen/README.md and the Clockwork/Orbital theme)"
+    },
+    "source": "nero-exchange",
+    "verdict_then": "incorrect",
+    "lang": "en"
+  },
+  {
+    "id": "real.v1.default-file-manager",
+    "question": "Where do I change the app that Super+E uses for folders?",
+    "history": [],
+    "expect": {
+      "must_mention_any": [["Ryoku Settings > Keybinds > Apps > App shortcuts", "Keybinds > Apps > App shortcuts"], ["File manager", "Super+E"]],
+      "must_not_mention": ["edit binds.lua"],
+      "gui_first": true,
+      "ideal": "Open Ryoku Settings > Keybinds > Apps > App shortcuts, find File manager, and choose an installed command such as Dolphin, Thunar, Nemo, or Nautilus. Super+E and Ryoku's file-manager role update immediately; this does not itself replace the inode/directory handler. (source: stable GUI map)"
+    },
+    "source": "nero-exchange",
+    "verdict_then": "partially_correct",
+    "lang": "en"
+  },
+  {
+    "id": "real.v1.bluetooth",
+    "question": "What is the normal stable-v1 path for pairing a Bluetooth headset?",
+    "history": [],
+    "expect": {
+      "must_mention_any": [["Ryoku Settings > Connections > Connections > Bluetooth", "Connections > Connections > Bluetooth"], ["Scan", "pair", "connect"]],
+      "must_not_mention": ["Bluetooth is unavailable on stable"],
+      "gui_first": true,
+      "ideal": "Open Ryoku Settings > Connections > Connections > Bluetooth, turn the adapter on, press Scan, and select the headset to pair, trust, and connect it. Use Doctor and bluetoothctl logs only if that GUI flow reports unavailable, blocked, or repeatedly fails. (source: stable GUI map)"
+    },
+    "source": "nero-exchange",
+    "verdict_then": "partially_correct",
+    "lang": "en"
+  },
+  {
+    "id": "real.v1.gpu-background-effect",
+    "question": "A window makes the wallpaper blurry and dark. Can I turn that effect off without changing GPUs?",
+    "history": [],
+    "expect": {
+      "must_mention_any": [["Ryoku Settings > General > Appearance", "General > Appearance"], ["Blur and dim behind windows"]],
+      "must_not_mention": ["switch GPUs", "disable all window shadows"],
+      "gui_first": true,
+      "ideal": "Open Ryoku Settings > General > Appearance and turn off Blur and dim behind windows. Its strength is separate from window shadows, inactive-window dimming, modal dimming, and the Graphics mode GPU selector. (source: stable GUI map and ryoku/hub/quickshell/schema/GlobalPage.js)"
+    },
+    "source": "nero-exchange",
+    "verdict_then": "incorrect",
     "lang": "en"
   }
 ]

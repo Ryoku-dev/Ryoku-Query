@@ -48,6 +48,10 @@ def gui_evidence(
     title="Deck frost",
     text="Turn Deck frost on or off.",
     path="Ryoku Hub > Desktop > General > Deck frost",
+    channels=frozenset(),
+    stable_version=None,
+    source_commit=None,
+    score=0.9,
 ):
     return Evidence(
         kind="gui",
@@ -57,16 +61,26 @@ def gui_evidence(
         path=path,
         url=None,
         risk=None,
-        score=0.9,
+        score=score,
+        channels=channels,
+        stable_version=stable_version,
+        source_commit=source_commit,
     )
 
 
 class FakeIndex:
-    def __init__(self, evidence, decision, cards=(), known_paths=()):
+    def __init__(
+        self, evidence, decision, cards=(), known_paths=(), stable_cli_usage=()
+    ):
         self.evidence = list(evidence)
         self.decision = decision
         self.cards = tuple(cards)
         self._known_paths = frozenset(known_paths)
+        self._stable_cli_usage = dict(stable_cli_usage)
+        self.stable_version = next(
+            (item.stable_version for item in self.evidence if item.stable_version),
+            None,
+        )
         self.search_queries = []
 
     def search(self, query, k=10):
@@ -78,6 +92,10 @@ class FakeIndex:
 
     def known_paths(self):
         return self._known_paths
+
+    def stable_cli_usage(self, command):
+        return self._stable_cli_usage.get(command, "")
+
 
     def card(self, card_id):
         return next((card for card in self.cards if card.id == card_id), None)
@@ -114,12 +132,23 @@ class PipelineTests(unittest.IsolatedAsyncioTestCase):
             "Ryoku Hub > Desktop > General > Deck frost",
         }
 
-    def pipeline(self, cloud, *, decision=None, evidence=None, cards=None, prowl=None):
+    def pipeline(
+        self,
+        cloud,
+        *,
+        decision=None,
+        evidence=None,
+        cards=None,
+        prowl=None,
+        known_paths=None,
+        stable_cli_usage=(),
+    ):
         index = FakeIndex(
             self.evidence if evidence is None else evidence,
             decision or RetrievalDecision("answer", card=self.card),
             (self.card,) if cards is None else cards,
-            self.known_paths,
+            self.known_paths if known_paths is None else known_paths,
+            stable_cli_usage,
         )
         return SupportPipeline(index, cloud, prowl), index
 
@@ -226,6 +255,60 @@ class PipelineTests(unittest.IsolatedAsyncioTestCase):
 
         self.assertEqual(answer.route, "cloud")
 
+    async def test_gui_paths_allow_prose_after_the_longest_known_label(self):
+        known_paths = {
+            "Ryoku Hub > General > Region & fonts > System font",
+            "Ryoku Hub > Updates",
+            "Ryoku Hub > Keybinds",
+            "Ryoku Hub > Recording",
+            "Ryoku Hub > Performance > Reduce motion",
+        }
+        answers = (
+            (
+                "Open Ryoku Hub > General > Region & fonts for "
+                "**System font**—that controls the shell font."
+            ),
+            "Open Ryoku Hub > Updates with Super+comma to access the release channel.",
+            "Open Ryoku Hub > Updates with Super+comma, then choose Update now.",
+            (
+                "Abra Ryoku Hub > Keybinds com Super+comma; o Kit é apenas "
+                "para consultar atalhos."
+            ),
+            "Abra Ryoku Hub > Recording com Super+comma.",
+            (
+                "Ryoku Hub > Performance > Reduce motion does not control "
+                "Close animation."
+            ),
+        )
+
+        for text in answers:
+            with self.subTest(text=text):
+                cloud = FakeCloud(LLMResult("ok", text=text))
+                pipeline, _ = self.pipeline(cloud, known_paths=known_paths)
+
+                answer = await pipeline.answer("Where is that setting?")
+
+                self.assertEqual(answer.route, "cloud")
+                self.assertEqual(answer.note, "")
+
+    async def test_unmapped_surface_path_is_not_validated(self):
+        cloud = FakeCloud(
+            LLMResult(
+                "ok",
+                text=(
+                    "Ryogami > Settings > Advanced > General > Restore "
+                    "wallpaper on reload."
+                ),
+            )
+        )
+        pipeline, _ = self.pipeline(cloud)
+
+        answer = await pipeline.answer("How do I restore my wallpaper?")
+
+        self.assertEqual(answer.route, "cloud")
+        self.assertEqual(answer.note, "")
+
+
     async def test_evidence_citations_are_stripped(self):
         cloud = FakeCloud(
             LLMResult(
@@ -254,16 +337,34 @@ class PipelineTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(answer.route, "clarify")
         self.assertEqual(answer.text, "Are you using niri or Hyprland?")
 
-    async def test_cloud_no_answer_returns_help_post_guidance(self):
+    async def test_cloud_no_answer_without_relevant_items_has_no_related_list(self):
         cloud = FakeCloud(LLMResult("ok", text="NO_ANSWER."))
         pipeline, _ = self.pipeline(cloud)
 
         answer = await pipeline.answer("Can Ryoku make coffee?")
 
         self.assertEqual(answer.route, "no_match")
-        self.assertIn("Deck frost", answer.text)
+        self.assertNotIn("Related:", answer.text)
+        self.assertNotIn("Deck frost", answer.text)
         self.assertIn("#help", answer.text)
         self.assertIn("`ryoku doctor --check`", answer.text)
+
+    async def test_cloud_no_answer_hides_below_threshold_related_item(self):
+        cloud = FakeCloud(LLMResult("ok", text="NO_ANSWER."))
+        evidence = [
+            gui_evidence(
+                title="Wallpaper picker",
+                path="Super+W",
+                score=0.029,
+            )
+        ]
+        pipeline, _ = self.pipeline(cloud, evidence=evidence)
+
+        answer = await pipeline.answer("Where is the wallpaper picker?")
+
+        self.assertEqual(answer.route, "no_match")
+        self.assertNotIn("Related:", answer.text)
+
 
     async def test_invented_hub_path_falls_back_to_card(self):
         cloud = FakeCloud(
@@ -276,6 +377,46 @@ class PipelineTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(answer.route, "card")
         self.assertEqual(answer.text, self.card.answer)
         self.assertTrue(answer.note.startswith("invalid:hub_path:"))
+
+    async def test_invented_child_under_known_hub_path_falls_back_to_card(self):
+        cloud = FakeCloud(
+            LLMResult(
+                "ok",
+                text=(
+                    "Open Ryoku Hub > Desktop > General > Deck frost "
+                    "> Intensity."
+                ),
+            )
+        )
+        pipeline, _ = self.pipeline(cloud)
+
+        answer = await pipeline.answer("How do I turn off frost?")
+
+        self.assertEqual(answer.route, "card")
+        self.assertEqual(answer.text, self.card.answer)
+        self.assertTrue(answer.note.startswith("invalid:hub_path:"))
+
+    async def test_known_stage_editor_path_is_validated(self):
+        path = "Stage Editor > Desktop > Widgets"
+        cloud = FakeCloud(LLMResult("ok", text=f"Open {path}, then add one."))
+        evidence = [
+            gui_evidence(
+                evidence_id="surface:stage-editor/widgets",
+                title="Desktop widgets",
+                text="Add a desktop widget.",
+                path=path,
+            )
+        ]
+        pipeline, _ = self.pipeline(
+            cloud,
+            evidence=evidence,
+            known_paths={path},
+        )
+
+        answer = await pipeline.answer("How do I add a desktop widget?")
+
+        self.assertEqual(answer.route, "cloud")
+
 
     async def test_invented_ryoku_settings_path_falls_back_to_card(self):
         cloud = FakeCloud(
@@ -298,6 +439,43 @@ class PipelineTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(answer.route, "card")
         self.assertEqual(answer.text, self.card.answer)
         self.assertEqual(answer.note, "invalid:command:ryoku teleport")
+
+    async def test_evidenced_ryoku_command_with_invented_flag_falls_back(self):
+        cloud = FakeCloud(
+            LLMResult("ok", text="Run `ryoku update --teleport` to fix it.")
+        )
+        evidence = [
+            card_evidence(self.card),
+            gui_evidence(
+                title="Update Ryoku",
+                text="Run ryoku update to bring Ryoku current.",
+            ),
+        ]
+        pipeline, _ = self.pipeline(cloud, evidence=evidence)
+
+        answer = await pipeline.answer("How do I update?")
+
+        self.assertEqual(answer.route, "card")
+        self.assertEqual(answer.note, "invalid:command:ryoku update --teleport")
+
+    async def test_stable_cli_usage_allows_documented_flag(self):
+        cloud = FakeCloud(LLMResult("ok", text="Run `ryoku update --wait`."))
+        evidence = [
+            gui_evidence(
+                title="Update Ryoku",
+                text="Run ryoku update to bring Ryoku current.",
+            )
+        ]
+        pipeline, _ = self.pipeline(
+            cloud,
+            evidence=evidence,
+            stable_cli_usage=(("ryoku update", "ryoku update --wait"),),
+        )
+
+        answer = await pipeline.answer("How do I wait for an update?")
+
+        self.assertEqual(answer.route, "cloud")
+
 
     async def test_system_prompt_commands_are_allowed_without_evidence(self):
         commands = (
@@ -340,7 +518,7 @@ class PipelineTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(answer.note, "card_disagrees")
         self.assertIn("#help", answer.text)
 
-    async def test_unavailable_cloud_without_card_lists_related_evidence(self):
+    async def test_unavailable_cloud_without_card_lists_relevant_evidence(self):
         cloud = FakeCloud(LLMResult("unavailable", error="timeout"))
         evidence = [
             gui_evidence(title="Wallpaper picker", path="Super+W"),
@@ -358,11 +536,11 @@ class PipelineTests(unittest.IsolatedAsyncioTestCase):
             cards=(),
         )
 
-        answer = await pipeline.answer("What controls might help?")
+        answer = await pipeline.answer("Where are wallpaper controls?")
 
         self.assertEqual(answer.route, "no_match")
         self.assertIn("Wallpaper picker — Super+W", answer.text)
-        self.assertIn("Desktop page — Ryoku Hub > Desktop", answer.text)
+        self.assertNotIn("Desktop page — Ryoku Hub > Desktop", answer.text)
         self.assertIn("#help", answer.text)
         self.assertEqual(answer.note, "cloud_unavailable:timeout")
 
@@ -421,6 +599,38 @@ class PromptTests(unittest.TestCase):
         self.assertIn("[E1]", evidence_block)
         self.assertNotIn("[E2]", evidence_block)
         self.assertGreaterEqual(len(evidence_block.splitlines()[1]), 120)
+
+    def test_prompt_renders_stable_version_and_current_evidence_precedence(self):
+        old_card = make_card(
+            card_id="widgets.desktop",
+            title="Desktop widgets",
+            answer="Desktop widgets are available only on unstable.",
+        )
+        evidence = [
+            card_evidence(old_card),
+            gui_evidence(
+                evidence_id="surface:stage-editor",
+                title="Stage Editor",
+                text="Desktop widgets are available on stable.",
+                path="Stage Editor > Desktop",
+                channels=frozenset({"stable"}),
+                stable_version="1.0.5",
+                source_commit="e344edb",
+            ),
+        ]
+
+        messages = build_messages("Can I use desktop widgets?", evidence, ())
+        system = messages[0]["content"]
+        evidence_block = messages[1]["content"]
+
+        self.assertIn("Ryoku stable is v1.0.5 (the current release).", system)
+        self.assertIn("current stable docs and the stable GUI map win", system)
+        self.assertNotIn("owner <path>` exists only", system)
+        self.assertIn("available only on unstable", evidence_block)
+        self.assertIn(
+            "(gui; channels=stable; stable=v1.0.5; commit=e344edb)",
+            evidence_block,
+        )
 
     def test_last_four_history_turns_are_included_and_bounded(self):
         history = (

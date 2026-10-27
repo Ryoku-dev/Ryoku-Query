@@ -28,6 +28,12 @@ def _git(repo: Path, *args: str) -> str:
     )
     return result.stdout.strip()
 
+def _stable_version(repo: Path) -> str:
+    version = (repo / "VERSION").read_text(encoding="utf-8").strip()
+    if not version:
+        raise ValueError(f"empty VERSION in {repo}")
+    return version.removeprefix("v")
+
 
 def _expression_after(text: str, marker: str, opener: str) -> str:
     marker_at = text.find(marker)
@@ -624,6 +630,7 @@ def build_gui_map(repo: Path, unstable: Path | None = None) -> dict[str, Any]:
             "repo": str(repo),
             "commit": stable_commit,
             "date": _git(repo, "show", "-s", "--format=%cI", "HEAD"),
+            "stable_version": _stable_version(repo),
             "stable_commit": stable_commit,
             "unstable_commit": unstable_commit,
         },

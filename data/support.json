@@ -30,7 +30,7 @@
       "kitty/user.conf",
       "user_edits"
     ],
-    "answer": "On stable, open the relevant Ryoku Hub page and press **FILES** to see the full user config it writes and the shipped defaults beneath it. Updates and `ryoku materialize` refresh Ryoku-shipped files, not personal additions or files Ryoku never shipped. Put Kitty changes in `~/.config/kitty/user.conf`, Fish changes in `~/.config/fish/user.fish`, Neovim changes in LazyVim's override paths, or whole-file forks under `~/.config/ryoku/user_edits`. Stable has no `ryoku owner`; unstable adds `ryoku owner <path>` to classify a file before editing.",
+    "answer": "Open the relevant Ryoku Hub page and press **FILES** to see the full user config it writes and the shipped defaults beneath it. Updates and `ryoku materialize` refresh Ryoku-shipped files, not personal additions or files Ryoku never shipped. Put Kitty changes in `~/.config/kitty/user.conf`, Fish changes in `~/.config/fish/user.fish`, Neovim changes in LazyVim's override paths, or whole-file forks under `~/.config/ryoku/user_edits`. Use `ryoku owner <path>` to classify any path before editing.",
     "risk": "informational",
     "docs_url": "https://docs.ryoku.dev/docs/customize#what-survives-an-update",
     "source_hints": [
@@ -207,14 +207,14 @@
       "processes",
       "tasks",
       "performance",
-      "unstable"
+      "stable"
     ],
     "exact_terms": [
       "RyoManager",
       "system monitor",
       "task manager"
     ],
-    "answer": "Stable does not yet ship RyoManager. Use the existing monitor tools there. On unstable, RyoManager is Ryoku's graphical system monitor and task manager: it shows performance and running processes and can manage them. Open Super+Space and search `RyoManager`. Fresh unstable installs select it by default; an existing unstable box receives it once, and removing it is respected.",
+    "answer": "RyoManager ships as Ryoku's graphical system monitor and process manager. Open Super+Space and search `RyoManager` to view performance, inspect running processes, and manage them. Fresh installs select it by default; an existing installation receives it once through the signed update path, and removing it is respected.",
     "risk": "informational",
     "docs_url": "https://docs.ryoku.dev/docs/apps#the-ryoku-apps",
     "source_hints": [
@@ -661,7 +661,7 @@
       "primary selection paste",
       "wheel button pastes"
     ],
-    "answer": "Open Ryoku Hub > Input > Middle-click pastes and turn it off or on. This controls inserting the current primary selection when you press the wheel; it is separate from Super+V clipboard history and from Emulate middle click. Save through the Hub so the active Hyprland, niri or unstable Wayfire provider receives the setting.",
+    "answer": "Open Ryoku Hub > Input > Middle-click pastes and turn it off or on. This controls inserting the current primary selection when you press the wheel; it is separate from Super+V clipboard history and from Emulate middle click. Save through the Hub so the active Hyprland, niri, or Wayfire provider receives the setting.",
     "risk": "state-changing",
     "docs_url": "https://docs.ryoku.dev/docs/settings#devices",
     "source_hints": [
@@ -696,7 +696,7 @@
       "not available on niri",
       "compositor differences"
     ],
-    "answer": "Ryoku Hub shows controls the running compositor's provider can honor. Stable Hyprland and niri both expose shared pages such as Animations and Performance, but each page hides or disables options its provider cannot apply. Compositor Plugins are Hyprland-only; niri instead exposes its native overview and column behavior. Keybinds stay top-level and carry across where the action is supported. Unstable Wayfire follows the same capability-gated rule, and switch preview lists anything it cannot express.",
+    "answer": "Ryoku Hub shows controls the running compositor's provider can honor. Hyprland, niri, and Wayfire expose shared pages such as Animations and Performance, while each page hides or disables options its provider cannot apply. Compositor Plugins are Hyprland-only; niri exposes its native overview and column behavior; Wayfire exposes its supported provider controls. Keybinds stay top-level and carry across where the action is supported, and switch preview lists anything the target cannot express.",
     "risk": "informational",
     "docs_url": "https://docs.ryoku.dev/docs/settings#one-hub-per-window-manager",
     "source_hints": [
@@ -737,7 +737,7 @@
       "user.ini",
       "user_edits"
     ],
-    "answer": "Use Ryoku Hub for every exposed setting. For a raw setting the GUI cannot express, open the **FILES** chip on a compositor-owned Hub page; it lists the running provider's user-owned files. Stable loads `~/.config/hypr/user.lua` or `~/.config/niri/user.kdl` last. Never edit generated `settings.lua`, `settings.kdl`, `rebinds.*`, `/usr/share/ryoku`, or Quickshell files—updates rewrite them. Unstable Wayfire uses `~/.config/wayfire/user.ini`.",
+    "answer": "Use Ryoku Hub for every exposed setting. For a raw setting the GUI cannot express, open the **FILES** chip on a compositor-owned Hub page; it lists the running provider's user-owned files. Ryoku loads `~/.config/hypr/user.lua`, `~/.config/niri/user.kdl`, or `~/.config/wayfire/user.ini` as the matching personal override. Never edit generated `settings.lua`, `settings.kdl`, `rebinds.*`, `/usr/share/ryoku`, or Quickshell files—updates rewrite them.",
     "risk": "state-changing",
     "docs_url": "https://docs.ryoku.dev/docs/customize#personal-compositor-overrides",
     "source_hints": [
@@ -776,7 +776,7 @@
       "switch to niri",
       "switch to Wayfire"
     ],
-    "answer": "Open Ryoku Hub > Window Manager > Compositor, choose a target, review what carries over and press Switch. Ryoku installs it if needed; keeping the old compositor is the reversible default. The current session does not change. Log out, then select the new session at the greeter. Stable offers Hyprland and niri; unstable also offers Wayfire. If a target is absent, its package/provider is not available on that channel—do not install it around the Hub.",
+    "answer": "Open Ryoku Hub > Window Manager > Compositor, choose Hyprland, niri, or Wayfire, review what carries over, and press Switch. Ryoku installs the target if needed; keeping the old compositor is the reversible default. The current session does not change. Log out, then select the new session at the greeter. If a target is absent, its package/provider is unavailable for that edition—do not install it around the Hub.",
     "risk": "state-changing",
     "docs_url": "https://docs.ryoku.dev/docs/cli#window-manager",
     "source_hints": [
@@ -1404,7 +1404,7 @@
       "dock pin",
       "dock unpin"
     ],
-    "answer": "Open **QS Bar Settings > Dock** and edit **Pinned apps**, or use the dock icon's context action to pin/unpin when the active dock offers it. The terminal equivalents are `ryoku-shell dock pin <desktop-id>`, `ryoku-shell dock unpin <desktop-id>`, and the read-only `ryoku-shell dock list --json`. Use the application's desktop ID, not its window title.",
+    "answer": "Right-click bare wallpaper, choose **Edit desktop**, then open **Dock** in the Stage Editor and edit **Pinned apps**. You can also use a dock icon's context action when the active design offers it. The terminal equivalents are `ryoku-shell dock pin <desktop-id>`, `ryoku-shell dock unpin <desktop-id>`, and the read-only `ryoku-shell dock list --json`. Use the application's desktop ID, not its window title.",
     "risk": "state-changing",
     "docs_url": "https://docs.ryoku.dev/docs/settings#desktop",
     "source_hints": [
@@ -1440,7 +1440,7 @@
       "ryoku-shell dock",
       "Dock"
     ],
-    "answer": "With QS Bar active, open its logo and go to **QS Bar Settings > Dock**. That route controls whether the dock is enabled, its edge, style, auto-hide, magnification, media chip, frost, **Depth** (the soft-shadow switch), hover labels, and pinned apps. `Ryoku Hub > Bar Studio` has an **Open QS Bar Settings** button if the bar logo is unavailable. A different bar style may own its own dock or provide none.",
+    "answer": "Right-click bare wallpaper, choose **Edit desktop**, then open **Dock** in the Stage Editor. It is the one dock settings surface: choose the design, enabled state, edge, auto-hide, icon size, magnification, design-specific appearance, and pin order there. The dock stays visible and clickable inside the desktop preview while you edit it, and its shared state is independent of the selected bar style.",
     "risk": "state-changing",
     "docs_url": "https://docs.ryoku.dev/docs/settings#desktop",
     "source_hints": [
@@ -1476,7 +1476,7 @@
       "CachyOS Layer",
       "Cachy kernel"
     ],
-    "answer": "Choose the stable Arch ISO for stock Arch userland and broad CPU compatibility. Choose the stable CachyOS ISO for the full CachyOS layer: CachyOS repositories and userland, `linux-cachyos`, tuning, schedulers, and Proton, with stock `linux` kept as a boot fallback. On stable, an Arch install can later add the **CachyOS Kernel** RyoStore bundle, but there is no Arch-ISO layer choice. Unstable adds an optional full CachyOS layer to the Arch installer and RyoStore.",
+    "answer": "Choose the Arch ISO for stock Arch userland and broad CPU compatibility. Choose the CachyOS ISO for a genuine CachyOS base: repositories, userland, `linux-cachyos`, tuning, schedulers, and Proton, with stock `linux` kept as a boot fallback. An Arch install can opt into **Gaming with CachyOS** during installation or add the **CachyOS Gaming** RyoStore bundle later; that adds the prepared kernel, tuning, and gaming stack without turning Arch into CachyOS.",
     "risk": "informational",
     "docs_url": "https://docs.ryoku.dev/docs/kernels#overview",
     "source_hints": [
@@ -1511,7 +1511,7 @@
       "x86-64-v3",
       "CachyOS requirement"
     ],
-    "answer": "The stable CachyOS edition does not require x86-64-v3: its ISO uses generic x86-64 packages, then enables optimized v3 repositories only when the CPU supports them. The separate **CachyOS Kernel** bundle for a stable Arch install is v3-only and refuses safely on an older CPU; keep the stock Arch kernel there. On unstable, the optional full CachyOS layer offered from the Arch installer is also skipped on a non-v3 CPU, while the CachyOS edition itself remains compatible.",
+    "answer": "The CachyOS edition does not require x86-64-v3: its ISO uses generic x86-64 packages, then enables optimized v3 repositories only when the CPU supports them. The optional **Gaming with CachyOS** choice for an Arch install is v3-only and is disabled safely on an older CPU; keep the stock Arch kernel there. The CachyOS edition itself remains compatible.",
     "risk": "informational",
     "docs_url": "https://docs.ryoku.dev/docs/kernels#what-the-cachyos-layer-adds",
     "source_hints": [
@@ -1553,7 +1553,7 @@
       "Void ISO",
       "Ryoku distro"
     ],
-    "answer": "Stable ships signed Arch and CachyOS ISOs and supports in-place installation on x86_64 Arch-based or Debian-based systems. Its desktop providers are Hyprland and niri; stable does not support Void, Fedora, or Wayfire. On unstable, native editions expand to Arch, CachyOS, Void glibc, and Fedora 44/45: Void is niri-only and has its own ISO, Fedora is script-installer only, and Wayfire is experimental on Arch and CachyOS. NixOS, Artix, and rpm-ostree Fedora remain unsupported.",
+    "answer": "Ryoku v1 ships signed Arch and CachyOS ISOs with Hyprland, niri, or experimental Wayfire. The experimental Void glibc edition is niri-only and has its own signed ISO or existing-system installer. Experimental Fedora 44/45 supports Hyprland or niri through the existing-system installer. NixOS is a community flake port; Artix and rpm-ostree Fedora remain unsupported.",
     "risk": "informational",
     "docs_url": "https://docs.ryoku.dev/docs/install#overview",
     "source_hints": [
@@ -1746,7 +1746,7 @@
       "wrong GPU",
       "dedicated GPU"
     ],
-    "answer": "First run `ryoku-gpu detect` to see the cards and recommendation. On stable Hyprland, open `Ryoku Hub > Graphics & Power > Graphics mode`: Hybrid removes Ryoku's render pin and leaves selection to the compositor; Performance pins the strongest GPU. The change takes effect at the next login and is separate from the firmware MUX. Stable niri chooses its own renderer, so this control cannot pin niri to a GPU. Unstable keeps the same niri limitation.",
+    "answer": "First run `ryoku-gpu detect` to see the cards and recommendation. On Hyprland, open `Ryoku Hub > Graphics & Power > Graphics mode`: Hybrid removes Ryoku's render pin and leaves selection to the compositor; Performance pins the strongest GPU. The change takes effect at the next login and is separate from the firmware MUX. Niri chooses its own renderer, so this control cannot pin niri to a GPU.",
     "risk": "state-changing",
     "docs_url": "https://docs.ryoku.dev/docs/hardware#graphics-power",
     "source_hints": [
@@ -2176,7 +2176,7 @@
       "convert in place",
       "existing installation"
     ],
-    "answer": "For a clean disk on stable, download the signed Arch or CachyOS ISO from ryoku.dev and use its guided installer. For an existing x86_64 Arch-based or Debian-based system, use the stable script installer from docs.ryoku.dev/docs/convert; it does not repartition and backs up the configs it changes. Run its dry run first and back up important data. Stable has no Void or Fedora route. Unstable adds a Void glibc ISO and in-place Void/Fedora 44/45 installers.",
+    "answer": "For a clean disk, use the signed Arch, CachyOS, or experimental Void glibc ISO from ryoku.dev. For an existing supported system, use the script installer: Arch, CachyOS, Void glibc, or mutable Fedora 44/45. It does not repartition and backs up the configs it changes. Run its dry run first and back up important data. Void is niri-only; Fedora supports Hyprland or niri and has no ISO.",
     "risk": "destructive",
     "docs_url": "https://docs.ryoku.dev/docs/convert#overview",
     "source_hints": [
@@ -2370,7 +2370,7 @@
       "keybind cheatsheet",
       "Kit"
     ],
-    "answer": "Press Super+K to toggle the keybind cheatsheet; press it again to close. It reads the effective bindings from the active compositor provider, including your rebinds and custom shortcuts, and marks actions that compositor cannot honor. Stable calls this surface Keybind cheatsheet. Unstable calls the expanded surface Kit. To edit a binding, use Ryoku Hub > Keybinds. The cheatsheet (Kit on unstable) is the read-only reference view.",
+    "answer": "Press Super+K to toggle Kit; press it again to close. Its Keys tab reads the effective bindings from the active compositor provider, including your rebinds and custom shortcuts, and marks actions that compositor cannot honor. Kit also includes Commands, Phone, Dev tools, and Typing test under one search field. To edit a binding, use Ryoku Hub > Keybinds; Kit is the read-only reference view.",
     "risk": "informational",
     "docs_url": "https://docs.ryoku.dev/docs/keybindings#the-ones-to-learn-first",
     "source_hints": [
@@ -2414,7 +2414,7 @@
       "App shortcuts",
       "edit keybinds"
     ],
-    "answer": "Open Ryoku Hub > Keybinds. Use Shortcuts to rebind a shipped action, Apps > App shortcuts to change launcher roles, or Custom > Custom shortcuts to add a command. Hub changes live in Ryoku's neutral store, survive updates, and carry between supported compositors. For a raw compositor-only bind the GUI cannot express, use the Hub page's **FILES** chip to open `hypr/user.lua` or `niri/user.kdl`; unstable Wayfire uses `wayfire/user.ini`. Never edit generated rebind files.",
+    "answer": "Open Ryoku Hub > Keybinds. Use Shortcuts to rebind a shipped action, Apps > App shortcuts to change launcher roles, or Custom > Custom shortcuts to add a command. Hub changes live in Ryoku's neutral store, survive updates, and carry between supported compositors. For a raw compositor-only bind the GUI cannot express, use the page's **FILES** chip to open `hypr/user.lua`, `niri/user.kdl`, or `wayfire/user.ini`. Never edit generated rebind files.",
     "risk": "state-changing",
     "docs_url": "https://docs.ryoku.dev/docs/settings#keys-apps",
     "source_hints": [
@@ -2452,7 +2452,7 @@
       "bare modifier",
       "modifier-only shortcut"
     ],
-    "answer": "Hyprland and niri do not support a reliable shortcut made from only a modifier key, so Ryoku cannot bind bare Super there. Open Ryoku Hub > Keybinds and choose a chord such as Super+Space instead. Unstable Wayfire can spell a bare modifier in its provider, but a chord is recommended if you want the binding to carry across compositors without becoming unavailable.",
+    "answer": "Hyprland and niri do not support a reliable shortcut made from only a modifier key, so Ryoku cannot bind bare Super there. Open Ryoku Hub > Keybinds and choose a chord such as Super+Space instead. Wayfire can spell a bare modifier in its provider, but a chord is recommended if you want the binding to carry across compositors without becoming unavailable.",
     "risk": "informational",
     "docs_url": "https://docs.ryoku.dev/docs/keybindings#window-manager-differences",
     "source_hints": [
@@ -2635,7 +2635,7 @@
       "Graphics & Power > Lock",
       "Graphics & Power > Suspend"
     ],
-    "answer": "Open Ryoku Hub > Graphics & Power > Idle timeouts. Set Dim, Lock, Screen off and Suspend separately for battery and AC; 0 disables that stage. On a desktop, enable Also on desktops. These timers use the same compositor-neutral policy on Hyprland, niri and unstable Wayfire, and Ryoku locks before suspending. Keep Awake pauses idle timers while it is enabled.",
+    "answer": "Open Ryoku Hub > Graphics & Power > Idle timeouts. Set Dim, Lock, Screen off, and Suspend separately for battery and AC; 0 disables that stage. On a desktop, enable Also on desktops. These timers use the same compositor-neutral policy on Hyprland, niri, and Wayfire, and Ryoku locks before suspending. Keep Awake pauses idle timers while it is enabled.",
     "risk": "state-changing",
     "docs_url": "https://docs.ryoku.dev/docs/hardware#power-idle",
     "source_hints": [
@@ -2709,7 +2709,7 @@
       "ryoku-shell lock",
       "lock screen"
     ],
-    "answer": "Press Super+L to lock immediately. The same action is listed in Ryoku Hub > Keybinds > Shortcuts > Shell shortcuts. From a terminal, use `ryoku-shell lock`. This invokes Ryoku's qylock session lock on Hyprland, niri and unstable Wayfire; it does not suspend the machine. If Super+L was rebound, Super+K shows the effective chord.",
+    "answer": "Press Super+L to lock immediately. The same action is listed in Ryoku Hub > Keybinds > Shortcuts > Shell shortcuts. From a terminal, use `ryoku-shell lock`. This invokes Ryoku's qylock session lock on Hyprland, niri, and Wayfire; it does not suspend the machine. If Super+L was rebound, Super+K shows the effective chord.",
     "risk": "state-changing",
     "docs_url": "https://docs.ryoku.dev/docs/keybindings#the-ones-to-learn-first",
     "source_hints": [
@@ -3030,7 +3030,7 @@
       "Notifications",
       "TRY"
     ],
-    "answer": "On stable, Ryoku's built-in notification cards follow the active wallpaper/theme palette; there is no separate notification-colour page. On unstable, open `Ryoku Hub > Overlays > Notifications`, choose an installed notification design, and use **TRY** to preview it. Bar styles that draw their own notifications keep their own design, so change that bar's settings instead if the Hub choice has no effect.",
+    "answer": "Open `Ryoku Hub > Overlays > Notifications`, choose an installed notification design, and use **TRY** to preview it. RyoStore installs notification designs without activating them; the Hub owns the active choice. Bar styles that draw their own notifications keep their own design, so change that bar's settings instead if the Hub choice has no effect.",
     "risk": "state-changing",
     "docs_url": "https://docs.ryoku.dev/docs/settings#desktop",
     "source_hints": [
@@ -3485,7 +3485,7 @@
       "Alt+Space",
       "Super+Alt+Space"
     ],
-    "answer": "On stable, open `Ryoku Hub > Rashin` and choose `Open dashboard` after setup; the launcher also has a `\\` quick-ask lane. Super+S is retired. On unstable, Alt+Space opens the quick Ask bar and Super+Alt+Space opens or focuses the full Rashin window. Ask is for short answers; Agent keeps a continuing work session.",
+    "answer": "Alt+Space opens the quick Ask bar, while Super+Alt+Space opens or focuses the full Rashin window. Ask is for short answers; Agent keeps a continuing work session. You can also open `Ryoku Hub > Rashin` and choose `Open dashboard` after setup, and the launcher has a `\\` quick-ask lane. Super+S is retired.",
     "risk": "informational",
     "docs_url": "https://docs.ryoku.dev/docs/rashin#quick-asks",
     "source_hints": [
@@ -3636,7 +3636,7 @@
       "screen recording",
       "Recording settings"
     ],
-    "answer": "First set codec, quality, FPS, encoder and cursor in Ryoku Hub > Recording. On stable, start with `ryoku-cmd-screenrecord --fullscreen` or `--region`; add `--with-desktop-audio` or `--with-microphone-audio`. Use `--pause`, `--stop` or `--status` afterward. On unstable, Super+Shift+S opens the Ryoshot capture bar, where recording is a GUI action. The recorder is compositor-neutral and chooses KMS, portal or fallback capture as available.",
+    "answer": "Press Super+Shift+S to open Ryoshot's capture bar, choose **Record**, then choose a region, window, or monitor and start recording. Set codec, quality, FPS, encoder, audio, and cursor behavior in Ryoku Hub > Recording. From a terminal, `ryoku-cmd-screenrecord --fullscreen` or `--region` remains available, with `--pause`, `--stop`, and `--status` afterward. The recorder is compositor-neutral and chooses KMS, portal, or fallback capture as available.",
     "risk": "state-changing",
     "docs_url": null,
     "source_hints": [
@@ -3828,7 +3828,7 @@
       "24-hour time",
       "12-hour clock"
     ],
-    "answer": "Stable: for the desktop clock, turn off `Ryoku Hub > Widgets > clock > 24-hour clock`. Its default QS Bar has a separate `QS Bar Settings > Widgets > Clock > 12-hour` toggle. On unstable, turn off `Ryoku Hub > General > Region & fonts > 24-hour time`; this desktop-wide preference covers Ryoku clocks. The default Orpheus exposes it at left-click 力 > Modules > Voice > 12-hour clock, while QS Bar keeps `QS Bar Settings > Widgets > Clock > 12-hour`; those shortcuts change the same preference.",
+    "answer": "Open `Ryoku Hub > General > Region & fonts` and turn off **24-hour time** for the desktop-wide 12-hour preference. The default Orpheus also exposes it at left-click 力 > Modules > Voice > 12-hour clock, while QS Bar exposes it at QS Bar Settings > Widgets > Clock > 12-hour; those shortcuts change the same preference.",
     "risk": "state-changing",
     "docs_url": "https://docs.ryoku.dev/docs/settings#desktop",
     "source_hints": [
@@ -3983,7 +3983,7 @@
       "Super+L",
       "Super+Escape"
     ],
-    "answer": "Press Super+Escape on stable to open **Quick Settings**. Its top row has **Log out**, **Lock**, **Click to reboot**, and **Click to shut down**; click reboot or shutdown once and let the short confirmation fill finish. Super+L locks immediately. You do not need a terminal or to hold the computer's physical power button. On unstable, Super+Escape opens **Controls**; its bottom-bar labels are Lock, Sleep, Log out, Restart and Power off, and those buttons are hold-to-activate.",
+    "answer": "Press Super+Escape to open **Controls**. Its bottom bar has Lock, Sleep, Log out, Restart, and Power off; hold the action to activate it. Super+L locks immediately. You do not need a terminal or to hold the computer's physical power button.",
     "risk": "state-changing",
     "docs_url": null,
     "source_hints": [
@@ -4253,7 +4253,7 @@
       "Shift+Print",
       "capture bar"
     ],
-    "answer": "Press Super+Shift+S. Stable opens Ryoshot's region/window/monitor selector and annotation editor. Print opens it too; Shift+Print starts with the whole monitor. On unstable, the same key still opens Ryoshot, now with a capture bar for Shot, Edit, OCR, Search or Record before you select an area. Escape cancels, and screenshots save under `~/Pictures/Screenshots`. Under niri, Ryoshot uses its grim fallback automatically.",
+    "answer": "Press Super+Shift+S to open Ryoshot's capture bar, where Shot, Edit, OCR, Search, and Record are GUI actions before you select a region, window, or monitor. Print opens it too; Shift+Print starts with the whole monitor. Escape cancels, and screenshots save under `~/Pictures/Screenshots`. Under niri, Ryoshot uses its grim fallback automatically.",
     "risk": "state-changing",
     "docs_url": "https://docs.ryoku.dev/docs/apps#screenshots",
     "source_hints": [
@@ -4289,7 +4289,7 @@
       "Ryogami",
       "Ryowalls"
     ],
-    "answer": "Press Super+W to open Ryogami, the wallpaper and theme picker that replaced Ryowalls. Pick an image, video, Wallpaper Engine scene, theme or rice there; Super+Shift+W chooses a random wallpaper. On stable, reveal the top filter bar and click **Settings**. On unstable, Shift+S opens the settings folio. Wallpapers, themes and rices stay outside Ryoku Hub on both channels.",
+    "answer": "Press Super+W to open Ryogami, the wallpaper and theme picker that replaced Ryowalls. Pick an image, video, Wallpaper Engine scene, theme, or rice there; Super+Shift+W chooses a random wallpaper. Press Shift+S to open the settings folio. Wallpapers, themes, and rices stay outside Ryoku Hub.",
     "risk": "state-changing",
     "docs_url": "https://docs.ryoku.dev/docs/theming#wallpapers-and-ryogami",
     "source_hints": [
@@ -4542,7 +4542,7 @@
       "osd",
       "notifications",
       "sidebars",
-      "unstable",
+      "designs",
       "ryostore"
     ],
     "exact_terms": [
@@ -4550,7 +4550,7 @@
       "Ryoku Hub > Overlays",
       "community launcher"
     ],
-    "answer": "Stable RyoStore does not yet expose app-launcher or overlay-design categories. On unstable, install the item in RyoStore; installation remains inactive. Select a launcher at `Ryoku Hub > App Launcher > Style`, which changes Super+Space. Select installed OSD, notification, or sidebar designs at `Ryoku Hub > Overlays`, where each surface also has a Try action.",
+    "answer": "Install an app-launcher, OSD, notification, or sidebar design in RyoStore; installation deliberately leaves it inactive. Select a launcher at `Ryoku Hub > App Launcher > Style`, which changes Super+Space. Select installed OSD, notification, or sidebar designs at `Ryoku Hub > Overlays`, where each surface also has a Try action.",
     "risk": "state-changing",
     "docs_url": "https://docs.ryoku.dev/docs/faq#overview",
     "source_hints": [
@@ -4720,7 +4720,7 @@
       "Interface scale",
       "Region & fonts"
     ],
-    "answer": "On stable use `Ryoku Hub > General > System font` and **Font size**. The documented families are Fraunces for display text, Space Grotesk for UI, JetBrains Mono Nerd Font for code and labels, and Noto for fallback/CJK; stable's configurable default is Space Grotesk, with SpaceMono Nerd Font as its mono/terminal fallback. On unstable the controls move to `Ryoku Hub > General > Region & fonts`, with separate **Terminal font** and **Interface scale**. Missing CJK glyphs should fall back to Noto.",
+    "answer": "Open `Ryoku Hub > General > Region & fonts` to change **System font**, **Font size**, **Terminal font**, and **Interface scale**. The documented families are Fraunces for display text, Space Grotesk for UI, JetBrains Mono Nerd Font for code and labels, and Noto for fallback/CJK. Missing CJK glyphs should fall back to Noto.",
     "risk": "state-changing",
     "docs_url": "https://docs.ryoku.dev/docs/theming#the-fixed-brand",
     "source_hints": [
@@ -4759,7 +4759,7 @@
       "Fixed palette",
       "Palette behaviour"
     ],
-    "answer": "On stable, press Super+W, reveal the filter bar, and use **Follow wallpaper colours** to let Matugen recolour the shell and supported apps after each wallpaper change. Use **Themes** to choose a fixed installed scheme; RyoStore themes join that list. On unstable, press Shift+S, open **Theme**, and set **Palette behaviour** to **Follow wallpaper**, **Fixed palette**, or **Keep current colours**.",
+    "answer": "Press Super+W, then Shift+S to open Ryogami settings. Under **Theme**, set **Palette behaviour** to **Follow wallpaper**, **Fixed palette**, or **Keep current colours**. Follow wallpaper lets Matugen recolour the shell and supported apps after each wallpaper change; fixed installed schemes, including RyoStore themes, stay selected instead.",
     "risk": "state-changing",
     "docs_url": "https://docs.ryoku.dev/docs/theming#how-colors-work",
     "source_hints": [
@@ -4797,7 +4797,7 @@
       "Palette Bridge",
       "Health check passed"
     ],
-    "answer": "On stable, open Ryogami with Super+W, reveal the filter bar, click **Settings**, then choose **Advanced > Matugen > Palette Bridge**. Use **Build and install/update**, enable the bridge, and choose **Set up** for Spotify, Vesktop or Zen; the page also offers status, health check and restart controls. On unstable, use Shift+S > **Integrations > Palette bridge**. Each app integration is opt-in; ordinary shell and terminal colours do not need the bridge.",
+    "answer": "Open Ryogami with Super+W, press Shift+S, then use **Integrations > Palette bridge**. Build or update the bridge, enable it, and choose Set up for Spotify, Vesktop, or Zen; the page also offers status, health-check, and restart controls. Each app integration is opt-in; ordinary shell and terminal colours do not need the bridge.",
     "risk": "state-changing",
     "docs_url": "https://docs.ryoku.dev/docs/theming#how-colors-work",
     "source_hints": [
@@ -4817,22 +4817,22 @@
       "what is the command to return to stable",
       "does unstable require reinstalling the ISO",
       "why is my stable install missing a new feature",
-      "which branch does the testing channel follow"
+      "which Ryoku channel follows new development"
     ],
     "keywords": [
       "stable",
       "unstable",
       "channel",
       "track",
-      "testing",
+      "release",
       "branch"
     ],
     "exact_terms": [
       "ryoku track unstable",
       "ryoku track stable",
-      "unstable-dev"
+      "channel switch"
     ],
-    "answer": "Most people should stay on stable, the default signed-release channel. On stable, run `ryoku track testing` (or `ryoku track unstable-dev`) to follow the latest `unstable-dev` commit that passed Testing; later `ryoku update` continues there. Return with `ryoku track stable`. Switching does not require an ISO reinstall. On the unstable channel, `ryoku track unstable` is the user-facing alias for that Testing lane.",
+    "answer": "Most people should stay on stable, the default signed-release channel. Run `ryoku track unstable` to follow new development from the source lane; later `ryoku update` continues there. Return to signed packages with `ryoku track stable`. Switching channels does not require an ISO reinstall. A release tag or published unstable build can also be pinned explicitly.",
     "risk": "state-changing",
     "docs_url": "https://docs.ryoku.dev/docs/updates#channels",
     "source_hints": [
@@ -4868,7 +4868,7 @@
       "update-log.txt",
       "ryoku update --verbose"
     ],
-    "answer": "Start with `ryoku status` and `ryoku doctor --check`. If **Ryoku Hub > Updates** shows only a summary, run `ryoku update --verbose`; the complete run is saved to `~/.local/state/ryoku/update-log.txt`. Do not force package conflicts or delete managed files. If stable says its channel is still building, retry later; `ryoku update --wait` is available only on unstable. Roll back the named pre-update snapshot if the desktop is broken.",
+    "answer": "Start with `ryoku status` and `ryoku doctor --check`. If **Ryoku Hub > Updates** shows only a summary, run `ryoku update --verbose`; the complete run is saved to `~/.local/state/ryoku/update-log.txt`. Do not force package conflicts or delete managed files. If the channel is still building, `ryoku update --wait` waits for it; retry later if the build failed. Roll back the named pre-update snapshot if the desktop is broken.",
     "risk": "informational",
     "docs_url": "https://docs.ryoku.dev/docs/cli#ryoku-update",
     "source_hints": [
@@ -5026,7 +5026,7 @@
       "survive updates",
       "personal config changes"
     ],
-    "answer": "Use Ryoku Hub for managed settings. On stable, the page's **FILES** chip shows the user-owned file to edit; general overrides go under `~/.config/ryoku/user_edits` at the path they mirror below `~/.config`. Hyprland uses `~/.config/hypr/user.lua`; niri uses `~/.config/niri/user.kdl`. On unstable, `ryoku owner <path>` reports the owner and supported override. Use `ryoku reset <relative-path>` to remove an overlay. Never edit `/usr/share/ryoku` or generated base files.",
+    "answer": "Use Ryoku Hub for managed settings. The page's **FILES** chip shows the user-owned file to edit; general overrides go under `~/.config/ryoku/user_edits` at the path they mirror below `~/.config`. Hyprland uses `~/.config/hypr/user.lua`; niri uses `~/.config/niri/user.kdl`; Wayfire uses `~/.config/wayfire/user.ini`. `ryoku owner <path>` reports the owner and supported override. Use `ryoku reset <relative-path>` to remove an overlay. Never edit `/usr/share/ryoku` or generated base files.",
     "risk": "informational",
     "docs_url": "https://docs.ryoku.dev/docs/customize#what-survives-an-update",
     "source_hints": [
@@ -5061,7 +5061,7 @@
       "Depth",
       "Parallax"
     ],
-    "answer": "On stable, right-click bare wallpaper and select **Depth** or **Parallax** directly; choose **Depth settings…** to open the Stage tab in Super+Esc. Depth generates a subject cut-out, while Parallax adds pointer motion. On unstable, right-click bare wallpaper, choose **Edit desktop**, then open **Depth** in the Stage Editor. The first enable can take time while the cut-out is generated.",
+    "answer": "Right-click bare wallpaper, choose **Edit desktop**, then open **Depth** in the Stage Editor. Choose Plain, Depth, Parallax, or Spatial, select the mode's model and refinements, then press Generate or Update when you are ready; choosing a mode alone does not start processing. Depth creates a still subject cut-out, while Parallax adds layered motion and Spatial uses a depth map.",
     "risk": "state-changing",
     "docs_url": "https://docs.ryoku.dev/docs/settings#desktop",
     "source_hints": [
@@ -5099,7 +5099,7 @@
       "Wallpaper directory",
       "Ctrl+D"
     ],
-    "answer": "Put images in `~/Pictures/Wallpapers`, then open them with Super+W. On stable, reveal Ryogami's filter bar, click **Settings**, then use **Advanced > Paths > Wallpaper directory** or **Video directory**; restart Ryogami after changing the wallpaper directory. Use the filter bar's online-sources button to browse enabled providers. On unstable, Shift+S > **Library** edits the paths, and Ctrl+D opens downloads, including Wallhaven, Steam Workshop, Unsplash and Pexels.",
+    "answer": "Put images in `~/Pictures/Wallpapers`, then open them with Super+W. Press Shift+S and use **Library** to change wallpaper and video directories; restart Ryogami after changing the wallpaper directory. Ctrl+D opens downloads, including Wallhaven, Steam Workshop, Unsplash, and Pexels.",
     "risk": "state-changing",
     "docs_url": "https://docs.ryoku.dev/docs/theming#wallpapers-and-ryogami",
     "source_hints": [
@@ -5137,7 +5137,7 @@
       "60fps live wallpaper",
       "Pause video wallpaper"
     ],
-    "answer": "On stable, reveal Ryogami's filter bar, click **Settings**, then open **Paper > Live wallpapers** and enable **Video wallpapers**. The `ryogami` engine can use a cached re-encode; adjust its FPS or width there. On unstable, use Shift+S > **Playback**. `Ryoku Hub > Performance > 60fps live wallpaper` trades more decoding for smoothness, while **Pause video wallpaper** deliberately stops it behind fullscreen windows.",
+    "answer": "Open Ryogami with Super+W, press Shift+S, then use **Playback** to enable and tune video wallpapers. The `ryogami` engine can use a cached re-encode; adjust its FPS or width there. `Ryoku Hub > Performance > 60fps live wallpaper` trades more decoding for smoothness, while **Pause video wallpaper** deliberately stops it behind fullscreen windows.",
     "risk": "state-changing",
     "docs_url": "https://docs.ryoku.dev/docs/theming#wallpapers-and-ryogami",
     "source_hints": [
@@ -5173,7 +5173,7 @@
       "This workspace",
       "Apply per monitor"
     ],
-    "answer": "On stable, reveal Ryogami's filter bar, click **Settings**, and enable **Advanced > General > Apply per monitor**. Applying a wallpaper then opens **Select monitors**, where you tick one or more outputs; with the option off, it applies to all. Stable has no per-workspace target. On unstable, the picker offers **All**, **This monitor**, and **This workspace**; Stage Editor > Wallpaper also has **Use for this workspace**.",
+    "answer": "Open Ryogami with Super+W and choose **All**, **This monitor**, or **This workspace** before applying the wallpaper. The workspace choice names the active workspace on the monitor where Ryogami opened. In the Stage Editor, **Use for this workspace** pins the currently shown wallpaper there; **Clear workspace wallpaper** returns to the display, all-display, or shipped fallback.",
     "risk": "state-changing",
     "docs_url": "https://docs.ryoku.dev/docs/theming#wallpapers-and-ryogami",
     "source_hints": [
@@ -5249,7 +5249,7 @@
       "Workshop directory",
       "Wallpaper Engine"
     ],
-    "answer": "On stable, reveal Ryogami's filter bar, click **Settings**, enable **Advanced > General > Steam Workshop browser**, then set the Workshop, WE assets and Steam directories under **Advanced > Paths** if detection is wrong. The **Wallpaper Engine** advanced tab configures its backend. On unstable, press Shift+S and use **Sources** for the same controls. Ryogami renders scenes itself; no separate Linux Wallpaper Engine wallpaper app is needed.",
+    "answer": "Open Ryogami with Super+W, press Shift+S, and use **Sources** for the Steam Workshop browser and its paths. Set the Workshop, Wallpaper Engine assets, and Steam directories there if detection is wrong. Ryogami renders scenes itself; no separate Linux Wallpaper Engine wallpaper app is needed.",
     "risk": "state-changing",
     "docs_url": "https://docs.ryoku.dev/docs/theming#wallpapers-and-ryogami",
     "source_hints": [
@@ -5288,7 +5288,7 @@
       "Edit desktop",
       "Widget settings"
     ],
-    "answer": "On stable open `Ryoku Hub > Widgets`, choose clock, calendar, music, aio, stats, weather or notes, and use its Enabled, placement, size, opacity and lock controls. On unstable, right-click bare wallpaper and choose **Edit desktop > Widgets**; add a widget, drag its frame, resize from a corner, and use **Settings** for its own controls. Unstable stores placement per display.",
+    "answer": "Right-click bare wallpaper and choose **Edit desktop**, then open **Widgets**. Add a widget, drag its frame, resize from a corner, and choose **Settings** for its own size, lock, depth, and other controls. Super+Shift+D opens the Widgets catalogue directly. Placement is stored per display.",
     "risk": "state-changing",
     "docs_url": "https://docs.ryoku.dev/docs/settings#desktop",
     "source_hints": [
@@ -5327,7 +5327,7 @@
       "Super+Alt+M",
       "Desktop > Visualizer"
     ],
-    "answer": "Super+M toggles the desktop visualizer; Super+Shift+M moves it above or behind windows, and Super+Alt+M enters placement. On stable its complete controls are at `Ryoku Hub > Desktop > Visualizer`, including Enabled, Style, Colour, size, motion and **Place on the desktop**. On unstable, right-click the wallpaper and use **Edit desktop > Visualizer** instead; the Hub no longer duplicates those controls.",
+    "answer": "Super+M toggles the desktop visualizer; Super+Shift+M moves it above or behind windows, and Super+Alt+M opens the Stage Editor's **Visualizer** catalogue. Add or select an instance there, then drag its frame, resize from a corner, rotate from the top handle, and choose its look and motion. Each instance keeps its own settings; removing the last instance turns the visualizer off.",
     "risk": "state-changing",
     "docs_url": "https://docs.ryoku.dev/docs/apps#clipboard-voice-and-the-visualizer",
     "source_hints": [
@@ -5366,7 +5366,7 @@
       "Super+D",
       "Alt+Tab"
     ],
-    "answer": "The shared Ryoku bindings are: Super+Q closes the focused window; Super+A toggles floating/tiled; Super+F toggles true fullscreen; Super+D maximises while keeping gaps and the bar; and Alt+Tab returns to the previously focused window. See or rebind them in Ryoku Hub > Keybinds > Shortcuts > Window shortcuts. The catalogue is shared across Hyprland, niri and unstable Wayfire; Kit marks an action unavailable if the active provider cannot honor it.",
+    "answer": "The shared Ryoku bindings are: Super+Q closes the focused window; Super+A toggles floating/tiled; Super+F toggles true fullscreen; Super+D maximises while keeping gaps and the bar; and Alt+Tab returns to the previously focused window. See or rebind them in Ryoku Hub > Keybinds > Shortcuts > Window shortcuts. The catalogue is shared across Hyprland, niri, and Wayfire; Kit marks an action unavailable if the active provider cannot honor it.",
     "risk": "state-changing",
     "docs_url": "https://docs.ryoku.dev/docs/keybindings#windows",
     "source_hints": [
@@ -5402,7 +5402,7 @@
       "focus follows pointer",
       "Ryoku Hub > Input"
     ],
-    "answer": "Open `Ryoku Hub > Input > Focus behavior`, choose the pointer/focus mode, then save. The active compositor provider translates this neutral setting where supported. If it repeatedly reverts, run the read-only `ryoku doctor --check`. On stable, the page's **FILES** chip identifies the personal override seam—`~/.config/hypr/user.lua` or `~/.config/niri/user.kdl`; on unstable, `ryoku owner <path>` can report it. Never edit generated settings files.",
+    "answer": "Open `Ryoku Hub > Input > Focus behavior`, choose the pointer/focus mode, then save. The active compositor provider translates this neutral setting where supported. If it repeatedly reverts, run the read-only `ryoku doctor --check`. The page's **FILES** chip identifies the personal override seam, and `ryoku owner <path>` can classify it. Never edit generated settings files.",
     "risk": "state-changing",
     "docs_url": "https://docs.ryoku.dev/docs/settings#devices",
     "source_hints": [
@@ -5551,7 +5551,7 @@
       "always open tiled",
       "always open floating"
     ],
-    "answer": "Turn on Advanced, then open `Ryoku Hub > Window Rules > Rule editor` on stable. Match the real app id/class or title, not its friendly menu name. For Files/Nautilus, match `org.gnome.Nautilus` and choose **Tile** or **Float**; for a browser, match its real id such as `firefox` and choose **Tile** or **Float**. Each rule applies one action, so add another for workspace or opacity. Stable supports Hyprland and niri. Unstable also exposes Wayfire's provider-specific subset. Use App Overrides for appearance, not placement.",
+    "answer": "Turn on Advanced, then open `Ryoku Hub > Window Rules > Rule editor`. Match the real app id/class or title, not its friendly menu name. For Files/Nautilus, match `org.gnome.Nautilus` and choose **Tile** or **Float**; for a browser, match its real id such as `firefox`. Each rule applies one action, so add another for workspace or opacity. Hyprland and niri expose the full shared editor; Wayfire exposes the subset its provider can honor. Use App Overrides for appearance, not placement.",
     "risk": "state-changing",
     "docs_url": "https://docs.ryoku.dev/docs/settings#compositor",
     "source_hints": [
@@ -5561,6 +5561,72 @@
     ],
     "clarifies_with": [
       "compositor.custom-config"
+    ]
+  },
+  {
+    "id": "appearance.app-opening-effect",
+    "title": "Turn Off Blur and Darkening Behind Windows",
+    "examples": [
+      "Why does my wallpaper blur when an app opens?",
+      "How do I stop the desktop getting dark behind windows?",
+      "Can I disable the app-opening background effect?",
+      "The GPU effect behind windows is too heavy",
+      "Where is the old Deck frost switch?"
+    ],
+    "keywords": [
+      "blur",
+      "darkening",
+      "windows",
+      "wallpaper",
+      "effect",
+      "GPU",
+      "frost"
+    ],
+    "exact_terms": [
+      "Blur and dim behind windows",
+      "Deck frost",
+      "app-opening effect"
+    ],
+    "answer": "Open `Ryoku Hub > General > Appearance > Blur and dim behind windows` and turn it off to keep the wallpaper clear when an app opens. **Blur and dim strength** changes the amount when the effect is enabled. This is separate from window shadows, inactive-window dimming, modal dimming, and compositor blur controls, and it applies on Hyprland and niri.",
+    "risk": "state-changing",
+    "docs_url": "https://docs.ryoku.dev/docs/settings#desktop",
+    "source_hints": [
+      "ryoku/hub/quickshell/schema/GlobalPage.js",
+      "ryoku/shell/quickshell/shell/modules/stage/Desktop.qml"
+    ],
+    "clarifies_with": [
+      "windows.niri-blur"
+    ]
+  },
+  {
+    "id": "lockscreen.animation",
+    "title": "Understand Lockscreen Animation",
+    "examples": [
+      "Can I turn off the lock screen windup?",
+      "Does Reduce motion change qylock?",
+      "Why does the lockscreen animate after I submit?",
+      "Where do I choose a calmer lockscreen?"
+    ],
+    "keywords": [
+      "lockscreen",
+      "animation",
+      "windup",
+      "qylock",
+      "theme"
+    ],
+    "exact_terms": [
+      "lockscreen windup",
+      "enableWindup"
+    ],
+    "answer": "Open `Ryoku Hub > Lockscreen` to choose the lockscreen design and inspect its looping preview. Clockwork/Orbital's windup is part of that qylock theme; it is not compositor window motion and `Ryoku Hub > Performance > Reduce motion` does not control it. Ryoku exposes no separate global qylock-animation switch, so choose a calmer design instead of editing the managed theme files.",
+    "risk": "state-changing",
+    "docs_url": "https://docs.ryoku.dev/docs/settings#desktop",
+    "source_hints": [
+      "ryoku/lockscreen/qylock/themes/clockwork/orbital/theme.conf",
+      "ryoku/lockscreen/qylock/themes/clockwork/orbital/Main.qml"
+    ],
+    "clarifies_with": [
+      "lockscreen.lock-now"
     ]
   }
 ]

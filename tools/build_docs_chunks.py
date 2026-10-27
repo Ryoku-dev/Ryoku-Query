@@ -39,6 +39,27 @@ def _git(repo: Path, *args: str) -> str:
     )
     return result.stdout.strip()
 
+def _stable_version(repo: Path) -> str:
+    version = (repo / "VERSION").read_text(encoding="utf-8").strip()
+    if not version:
+        raise ValueError(f"empty VERSION in {repo}")
+    return version.removeprefix("v")
+
+
+def _stable_cli_usage(repo: Path) -> str:
+    path = repo / "ryoku/cli/main.go"
+    if not path.is_file():
+        return ""
+    text = path.read_text(encoding="utf-8")
+    match = re.search(
+        r'func\s+usage\(\).*?i18n\.T\("((?:\\.|[^"\\])*)"\)',
+        text,
+        flags=re.DOTALL,
+    )
+    if match is None:
+        return ""
+    return str(json.loads(f'"{match.group(1)}"'))
+
 
 def heading_slug(value: str) -> str:
     value = re.sub(r"`([^`]*)`", r"\1", value).lower()
@@ -271,10 +292,14 @@ def collect_chunks(docs: Path, repo: Path) -> list[dict[str, object]]:
 def build_docs_chunks(docs: Path, repo: Path) -> dict[str, object]:
     docs = docs.resolve()
     repo = repo.resolve()
+    stable_commit = _git(repo, "rev-parse", "--short", "HEAD")
     return {
         "generated_from": {
             "docs_commit": _git(docs, "rev-parse", "--short", "HEAD"),
-            "repo_commit": _git(repo, "rev-parse", "--short", "HEAD"),
+            "repo_commit": stable_commit,
+            "stable_version": _stable_version(repo),
+            "stable_commit": stable_commit,
+            "stable_cli_usage": _stable_cli_usage(repo),
         },
         "chunks": collect_chunks(docs, repo),
     }

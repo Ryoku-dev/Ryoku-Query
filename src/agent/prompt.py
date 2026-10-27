@@ -14,10 +14,10 @@ Write a Hub path as one breadcrumb exactly as it appears in the evidence, in the
 Use only facts from the numbered evidence. Do not add facts, side effects, or extra options the evidence does not state. Never invent Hub pages, settings, keybinds, commands, file paths, or URLs, and never cite evidence numbers. Use `NO_ANSWER` only when the numbered evidence contains nothing relevant to the question; in that case output exactly `NO_ANSWER`. If the evidence covers any part of the question, answer with what it covers and say plainly what it does not show, for example: "I don't see a separate switch for that; the dock's own settings are in ...".
 Prefer evidence that directly names the user's goal, especially a reviewed card or an exact keybind or setting, over loosely related settings that merely share a word.
 When the evidence does not explain a hardware- or system-specific problem—a device, driver, heat, speed, or crash it does not cover—say so plainly and ask the user to post in #help with the output of `ryoku doctor --check` and, if asked, `ryoku doctor --report`; do not guess a fix from a loosely related setting.
-Evidence notes marked "(unstable channel only)" or "(stable channel only)" describe channel differences. Give the stable answer first and, when the unstable channel differs, add one short clause for testers: "on the unstable channel it is ...". Docs items describe the newest Ryoku and can run ahead of stable; when a docs item disagrees with a reviewed card or a settings entry, follow the card or the entry.
+Evidence notes marked "(unstable channel only)" or "(stable channel only)" describe channel differences. Give the stable answer first and, when the unstable channel differs, add one short clause for testers: "on the unstable channel it is ...". Reviewed cards provide preferred wording and steps, but can lag a release. For whether a feature, setting, command, or edition exists on stable or unstable, current stable docs and the stable GUI map win over a conflicting card. Use a card's wording and steps when they agree with that current evidence.
 Use `CLARIFY: <one short question>` only when the steps are entirely different per compositor (Hyprland, niri, or Wayfire) or edition (Arch, CachyOS, Fedora, Void, or NixOS) and the user did not say which.
 When a question has an obvious most likely meaning, answer that meaning directly and mention another plausible meaning briefly only if useful. Never reply with a plain question; if clarification is permitted and necessary, use the `CLARIFY:` form.
-Never tell users to edit files under `~/.config/quickshell` or `/usr/share/ryoku` because updates overwrite them. Personal tweaks go through Ryoku Hub (a page's FILES button shows which file is yours to edit), the `~/.config/ryoku/user_edits` overlay, `~/.config/hypr/user.lua` or `~/.config/niri/user.kdl`. `ryoku owner <path>` exists only on the unstable channel.
+Never tell users to edit files under `~/.config/quickshell` or `/usr/share/ryoku` because updates overwrite them. Personal tweaks go through Ryoku Hub (a page's FILES button shows which file is yours to edit), the `~/.config/ryoku/user_edits` overlay, `~/.config/hypr/user.lua` or `~/.config/niri/user.kdl`.
 For recovery that changes the system, offer a read-only check such as `ryoku doctor --check` first. Never suggest rm -rf, reinstalling, force flags, or wiping.
 Reply in the user's language, including Portuguese or Spanish, but keep UI names exactly as shown in the evidence."""
 
@@ -31,10 +31,33 @@ def _one_line(value: str) -> str:
 
 def _evidence_line(number: int, item: Evidence) -> str:
     locator = item.path or item.url
-    line = f"[E{number}] ({item.kind}) {_one_line(item.title)} — {_one_line(item.text)}"
+    provenance: list[str] = []
+    if item.channels:
+        provenance.append("channels=" + ",".join(sorted(item.channels)))
+    if item.stable_version:
+        provenance.append(f"stable=v{item.stable_version.removeprefix('v')}")
+    if item.source_commit:
+        provenance.append(f"commit={item.source_commit}")
+    kind = item.kind + (f"; {'; '.join(provenance)}" if provenance else "")
+    line = f"[E{number}] ({kind}) {_one_line(item.title)} — {_one_line(item.text)}"
     if locator:
         line += f" — {_one_line(locator)}"
     return line
+
+
+def _stable_release_line(
+    evidence: list[Evidence], stable_version: str | None = None
+) -> str:
+    versions = {
+        item.stable_version.removeprefix("v")
+        for item in evidence
+        if item.stable_version
+    }
+    if stable_version:
+        versions.add(stable_version.removeprefix("v"))
+    if len(versions) != 1:
+        return ""
+    return f"Ryoku stable is v{versions.pop()} (the current release)."
 
 
 def _evidence_block(evidence: list[Evidence], max_chars: int) -> str:
@@ -78,8 +101,15 @@ def build_messages(
     *,
     mode: str = "user",
     max_evidence_chars: int = 6000,
+    stable_version: str | None = None,
 ) -> list[dict[str, str]]:
-    system = SYSTEM_PROMPT if mode != "source" else f"{SYSTEM_PROMPT}\n{_SOURCE_MODE}"
+    identity = _stable_release_line(evidence, stable_version)
+    system_parts = [SYSTEM_PROMPT]
+    if identity:
+        system_parts.append(identity)
+    if mode == "source":
+        system_parts.append(_SOURCE_MODE)
+    system = "\n".join(system_parts)
     parts = [_evidence_block(evidence, max_evidence_chars)]
     history_text = _history_block(history)
     if history_text:

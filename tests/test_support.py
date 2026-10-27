@@ -648,6 +648,75 @@ class RealCatalogTests(unittest.TestCase):
             f"(card id, path): {invalid}",
         )
 
+    def test_catalog_channel_claims_match_current_contracts(self):
+        cards = load_support_cards(Path("data/support.json"))
+        gui_map = json.loads(
+            Path("data/gui_map.json").read_text(encoding="utf-8")
+        )
+        retired_track = re.compile(
+            r"\bunstable-dev\b|ryoku\s+track\s+(?:testing|main)\b",
+            re.IGNORECASE,
+        )
+        unstable_only_claim = re.compile(
+            r"unstable[- ]only|only (?:on|in) (?:the )?unstable|"
+            r"available only (?:on|in) (?:the )?unstable|"
+            r"on (?:the )?unstable(?: channel)?[, :]",
+            re.IGNORECASE,
+        )
+        breadcrumb_pattern = re.compile(
+            r"(?:Ryoku Hub|Ryoku Settings)\s*>\s*[^.;,)\u2014\n`]+",
+            re.IGNORECASE,
+        )
+        unstable_paths = {
+            " ".join(entry["path"].split()).casefold()
+            for entry in gui_map["entries"]
+            if entry["kind"] in {"page", "setting"}
+            and set(entry.get("channels", [])) == {"unstable"}
+        }
+        retired = []
+        unsupported_claims = []
+
+        for catalog_card in cards:
+            searchable = " ".join(
+                (
+                    catalog_card.title,
+                    *catalog_card.examples,
+                    *catalog_card.keywords,
+                    *catalog_card.exact_terms,
+                    catalog_card.answer,
+                )
+            )
+            if retired_track.search(searchable):
+                retired.append(catalog_card.id)
+            if not unstable_only_claim.search(catalog_card.answer):
+                continue
+
+            named_paths = {
+                " ".join(
+                    re.sub(
+                        r"^Ryoku Settings\b",
+                        "Ryoku Hub",
+                        match.group(0).strip(" \t`*"),
+                        flags=re.IGNORECASE,
+                    ).split()
+                ).casefold()
+                for match in breadcrumb_pattern.finditer(catalog_card.answer)
+            }
+            if not named_paths.intersection(unstable_paths):
+                unsupported_claims.append((catalog_card.id, sorted(named_paths)))
+
+        self.assertEqual(
+            retired,
+            [],
+            f"Catalog uses retired track channel names: {retired}",
+        )
+        self.assertEqual(
+            unsupported_claims,
+            [],
+            "Unstable-only GUI claims without an unstable-only generated path: "
+            f"{unsupported_claims}",
+        )
+
     def test_shell_recovery_card_is_state_changing_without_rollback_advice(self):
         cards = load_support_cards(Path("data/support.json"))
         shell = next(card for card in cards if card.id == "shell.missing")

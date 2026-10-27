@@ -21,6 +21,62 @@
       "difficulty": "easy",
       "expected": "answer",
       "intent_id": "shell.fish-config"
+    },
+    {
+      "id": "prod-v1-wallpaper-restore",
+      "query": "My wallpaper disappears after I sign in; what should I check first?",
+      "difficulty": "contextual",
+      "expected": "answer",
+      "intent_id": "wallpaper.troubleshoot"
+    },
+    {
+      "id": "prod-v1-display-persistence",
+      "query": "Where do I set monitor scaling so it survives reconnecting the display?",
+      "difficulty": "easy",
+      "expected": "answer",
+      "intent_id": "displays.scale"
+    },
+    {
+      "id": "prod-v1-desktop-widget-editing",
+      "query": "Can I move and resize a desktop widget on stable without editing config files?",
+      "difficulty": "easy",
+      "expected": "answer",
+      "intent_id": "widgets.desktop"
+    },
+    {
+      "id": "prod-v1-dock-live-editing",
+      "query": "Where can I change the dock while keeping it visible in the desktop preview?",
+      "difficulty": "contextual",
+      "expected": "answer",
+      "intent_id": "dock.settings"
+    },
+    {
+      "id": "prod-v1-lockscreen-animation",
+      "query": "Does the global reduced-motion setting turn off the lockscreen windup?",
+      "difficulty": "contextual",
+      "expected": "answer",
+      "intent_id": "lockscreen.animation"
+    },
+    {
+      "id": "prod-v1-default-file-manager",
+      "query": "How do I make Super+E use Dolphin instead of the default file manager?",
+      "difficulty": "easy",
+      "expected": "answer",
+      "intent_id": "apps.default-file-manager"
+    },
+    {
+      "id": "prod-v1-bluetooth-pairing",
+      "query": "Where should I pair a Bluetooth headset before I start collecting logs?",
+      "difficulty": "easy",
+      "expected": "answer",
+      "intent_id": "network.bluetooth-manage"
+    },
+    {
+      "id": "prod-v1-window-background-effect",
+      "query": "Opening a window blurs and darkens my wallpaper; how do I disable that effect?",
+      "difficulty": "easy",
+      "expected": "answer",
+      "intent_id": "appearance.app-opening-effect"
     }
   ]
 }

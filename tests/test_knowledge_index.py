@@ -74,15 +74,30 @@ class KnowledgeIndexTests(unittest.TestCase):
         path.write_text(json.dumps(value), encoding="utf-8")
         return path
 
-    def build(self, cards, entries=(), chunks=(), encoder=None):
+    def build(
+        self,
+        cards,
+        entries=(),
+        chunks=(),
+        encoder=None,
+        *,
+        gui_metadata=None,
+        docs_metadata=None,
+    ):
         support_path = self.write_json("support.json", cards)
         gui_path = self.write_json(
             "gui_map.json",
-            {"generated_from": {}, "entries": list(entries)},
+            {
+                "generated_from": gui_metadata or {},
+                "entries": list(entries),
+            },
         )
         docs_path = self.write_json(
             "docs_chunks.json",
-            {"generated_from": {}, "chunks": list(chunks)},
+            {
+                "generated_from": docs_metadata or {},
+                "chunks": list(chunks),
+            },
         )
         return KnowledgeIndex.from_paths(
             support_path,
@@ -363,22 +378,81 @@ class KnowledgeIndexTests(unittest.TestCase):
         self.assertNotIn("setting:display/scale-stable", result_ids)
         self.assertIn("setting:network/alternative-4", result_ids)
 
-    def test_known_paths_include_full_setting_and_page_prefix(self):
+    def test_known_paths_include_only_full_paths_present_in_gui_map(self):
         full_path = " Ryoku Hub> Desktop > General > Deck frost "
+        page_path = "Ryoku Hub > Desktop"
         index = self.build(
             [card("desktop.effects", "effects")],
             [
+                gui_entry(
+                    "page:desktop",
+                    "Desktop",
+                    page_path,
+                    "Desktop settings.",
+                    kind="page",
+                ),
                 gui_entry(
                     "setting:desktop/deckFrostEnabled",
                     "Deck frost",
                     full_path,
                     "Blurs the desktop.",
-                )
+                ),
             ],
         )
 
         self.assertIn(normalize_path(full_path), index.known_paths())
-        self.assertIn("ryoku hub > desktop", index.known_paths())
+        self.assertIn(normalize_path(page_path), index.known_paths())
+        self.assertNotIn("ryoku hub > desktop > general", index.known_paths())
+
+    def test_generated_metadata_reaches_evidence_and_cli_usage(self):
+        index = self.build(
+            [card("updates.help", "update")],
+            [
+                gui_entry(
+                    "setting:updates/channel",
+                    "Update channel",
+                    "Ryoku Hub > Updates > Channel",
+                    "Choose the stable update channel.",
+                    channels=["stable"],
+                )
+            ],
+            [
+                {
+                    "id": "doc:docs/cli#ryoku-update",
+                    "title": "The ryoku command > ryoku update",
+                    "url": "https://docs.ryoku.dev/docs/cli#ryoku-update",
+                    "text": "Run ryoku update to wait for the stable build.",
+                    "source": "docs/cli.mdx",
+                }
+            ],
+            gui_metadata={
+                "stable_version": "1.0.5",
+                "stable_commit": "e344edb",
+            },
+            docs_metadata={
+                "stable_version": "1.0.5",
+                "stable_commit": "e344edb",
+                "docs_commit": "a588c49",
+                "stable_cli_usage": (
+                    "Usage: ryoku <command>\n"
+                    "  update --wait  wait for a channel build\n"
+                ),
+            },
+        )
+
+        evidence = index.search("stable update channel", k=10)
+        gui = next(item for item in evidence if item.kind == "gui")
+        doc = next(item for item in evidence if item.kind == "doc")
+
+        self.assertEqual(index.stable_version, "1.0.5")
+        self.assertEqual(index.stable_commit, "e344edb")
+        self.assertEqual(gui.channels, frozenset({"stable"}))
+        self.assertEqual(gui.stable_version, "1.0.5")
+        self.assertEqual(gui.source_commit, "e344edb")
+        self.assertEqual(doc.channels, frozenset({"stable"}))
+        self.assertEqual(doc.stable_version, "1.0.5")
+        self.assertEqual(doc.source_commit, "a588c49")
+        self.assertIn("--wait", index.stable_cli_usage("ryoku update"))
 
     def test_card_decision_delegates_to_support_retriever(self):
         doctor = card(

@@ -3,6 +3,7 @@ from __future__ import annotations
 import re
 import time
 from dataclasses import dataclass
+from typing import Callable
 
 from prowl import ProwlClient, ProwlResult, is_source_query
 from src.agent.cloud import CloudClient
@@ -49,15 +50,51 @@ _ALWAYS_ALLOWED_COMMANDS = frozenset(
     }
 )
 _INLINE_CODE = re.compile(r"`([^`\n]+)`")
+_COMMAND_FLAG = re.compile(r"(?<![\w-])--?[a-z0-9][a-z0-9-]*", re.IGNORECASE)
 _EVIDENCE_CITATION = re.compile(r"\s*\[E\d+\]", re.IGNORECASE)
-_HUB_PATH = re.compile(
-    r"ryoku\s+(?:hub|settings)\s*>\s*[^\n`]*?"
-    r"(?=\n|`|ryoku\s+(?:hub|settings)\s*>|$)",
+_GUI_PATH = re.compile(
+    r"(?:ryoku\s+(?:hub|settings)|stage\s+editor|ryostore|ryogami)"
+    r"\s*>\s*[^\n`]*?"
+    r"(?=\n|`|(?:ryoku\s+(?:hub|settings)|stage\s+editor|ryostore|ryogami)\s*>|$)",
     re.IGNORECASE,
 )
 _NO_ANSWER = re.compile(r"^[\s\W]*NO_ANSWER\b", re.IGNORECASE)
 _CLARIFY = re.compile(r"^\s*CLARIFY\s*:\s*(.*)", re.IGNORECASE | re.DOTALL)
 _ARROW_TRANSLATION = str.maketrans({"→": ">", "›": ">", "»": ">"})
+_RELATED_MIN_SCORE = 0.03
+_RELATED_STOP_WORDS = frozenset(
+    {
+        "a",
+        "an",
+        "and",
+        "can",
+        "control",
+        "controls",
+        "do",
+        "for",
+        "help",
+        "how",
+        "i",
+        "is",
+        "it",
+        "me",
+        "might",
+        "my",
+        "of",
+        "on",
+        "page",
+        "ryoku",
+        "setting",
+        "settings",
+        "the",
+        "to",
+        "what",
+        "with",
+    }
+)
+_NO_PATH_CHILDREN: frozenset[str] = frozenset()
+
+
 _QUESTION_FILLER = (
     r"(?:(?:(?:hi|hello|hey|oi|olá|ola|hola)(?:\s+(?:nero|there))?"
     r"|well|so|okay|ok|um|uh|sorry)\b[\s,!.-]*"
@@ -173,23 +210,61 @@ def _evidence_text(evidence: list[Evidence]) -> str:
     return normalize_text("\n".join(values))
 
 
-def _path_is_known(candidate: str, known_paths: frozenset[str]) -> bool:
-    normalized = normalize_path(candidate)
-    if not normalized:
-        return False
+def _known_path_children(
+    known_paths: frozenset[str],
+) -> dict[tuple[str, ...], frozenset[str]]:
+    mutable: dict[tuple[str, ...], set[str]] = {}
     for path in known_paths:
-        known = normalize_path(path)
-        if not known or not normalized.startswith(known):
+        parts = tuple(normalize_path(path).split(" > "))
+        if not parts or not parts[0]:
             continue
-        if len(normalized) == len(known) or not normalized[len(known)].isalnum():
-            return True
-    return False
+        mutable.setdefault((), set()).add(parts[0])
+        for index in range(1, len(parts)):
+            parent = parts[:index]
+            mutable.setdefault(parent, set()).add(parts[index])
+    return {parent: frozenset(children) for parent, children in mutable.items()}
+
+
+def _path_is_known(
+    candidate: str,
+    known_children: dict[tuple[str, ...], frozenset[str]],
+) -> bool | None:
+    parts = tuple(normalize_path(candidate).split(" > "))
+    if len(parts) < 2 or not parts[0]:
+        return False
+    if parts[0] not in known_children.get((), _NO_PATH_CHILDREN):
+        return None
+
+    parent = (parts[0],)
+    for index, segment in enumerate(parts[1:], start=1):
+        children = known_children.get(parent, _NO_PATH_CHILDREN)
+        if index < len(parts) - 1:
+            child = segment if segment in children else None
+        else:
+            child = next(
+                (
+                    label
+                    for label in sorted(children, key=len, reverse=True)
+                    if segment == label
+                    or (
+                        segment.startswith(label)
+                        and len(segment) > len(label)
+                        and not segment[len(label)].isalnum()
+                    )
+                ),
+                None,
+            )
+        if child is None:
+            return False
+        parent = (*parent, child)
+    return True
 
 
 def _model_text_error(
     text: str,
     evidence: list[Evidence],
     known_paths: frozenset[str],
+    stable_cli_usage: Callable[[str], str],
 ) -> str | None:
     if not text or len(text) > 1900:
         return "invalid:length"
@@ -199,11 +274,17 @@ def _model_text_error(
 
     packed_text = _evidence_text(evidence)
     validation_text = text.translate(_ARROW_TRANSLATION)
-    for match in _HUB_PATH.finditer(validation_text):
+    known_children = _known_path_children(known_paths)
+    for match in _GUI_PATH.finditer(validation_text):
         candidate = match.group(0).strip()
-        if not _path_is_known(candidate, known_paths):
-            return f"invalid:hub_path:{candidate[:60]}"
-
+        path_status = _path_is_known(candidate, known_children)
+        if path_status is False:
+            error_kind = (
+                "hub_path"
+                if normalize_path(candidate).startswith("ryoku hub >")
+                else "gui_path"
+            )
+            return f"invalid:{error_kind}:{candidate[:60]}"
     for inline in _INLINE_CODE.findall(text):
         command = inline.strip()
         words = command.split()
@@ -217,6 +298,14 @@ def _model_text_error(
         first_two = normalize_text(" ".join(words[:2]))
         if first_two not in packed_text:
             return f"invalid:command:{command}"
+        usage = f"{packed_text}\n{stable_cli_usage(first_two)}".casefold()
+        usage_flags = frozenset(_COMMAND_FLAG.findall(usage))
+        for word in words[1:]:
+            if not word.startswith("-"):
+                continue
+            flag = word.split("=", 1)[0].casefold()
+            if flag not in usage_flags:
+                return f"invalid:command:{command}"
     return None
 
 
@@ -264,14 +353,28 @@ def _first_docs_url(evidence: list[Evidence]) -> str | None:
     return next((item.url for item in evidence if item.url), None)
 
 
-def _related_text(evidence: list[Evidence]) -> str:
+def _topic_terms(value: str) -> frozenset[str]:
+    return frozenset(
+        token
+        for token in re.findall(r"[a-z0-9]+", normalize_text(value))
+        if len(token) > 1 and token not in _RELATED_STOP_WORDS
+    )
+
+
+def _related_text(query: str, evidence: list[Evidence]) -> str:
     lines = ["I'm not sure I have a confident Ryoku answer for that."]
+    query_terms = _topic_terms(query)
     related: list[str] = []
     seen: set[tuple[str, str]] = set()
     for item in evidence:
         locator = item.path or item.url or ""
         key = (item.title, locator)
-        if key in seen:
+        item_terms = _topic_terms(f"{item.title} {item.path or ''}")
+        if (
+            key in seen
+            or item.score < _RELATED_MIN_SCORE
+            or query_terms.isdisjoint(item_terms)
+        ):
             continue
         seen.add(key)
         related.append(f"- {item.title}" + (f" — {locator}" if locator else ""))
@@ -370,13 +473,14 @@ class SupportPipeline:
                 history,
                 mode=mode,
                 max_evidence_chars=self.max_evidence_chars,
+                stable_version=self.index.stable_version,
             )
             result = await self.cloud.complete(messages, max_tokens=450)
             if result.status == "ok":
                 text = _EVIDENCE_CITATION.sub("", result.text).strip()
                 if _NO_ANSWER.match(text):
                     return finish(
-                        _related_text(evidence),
+                        _related_text(query, evidence),
                         "no_match",
                         "No confident Ryoku answer",
                         evidence,
@@ -398,7 +502,10 @@ class SupportPipeline:
                     fallback_note = "invalid:length"
                 else:
                     fallback_note = _model_text_error(
-                        text, evidence, self.index.known_paths()
+                        text,
+                        evidence,
+                        self.index.known_paths(),
+                        self.index.stable_cli_usage,
                     ) or ""
                     if not fallback_note:
                         title, card_id, risk = _answer_metadata(self.index, evidence)
@@ -429,7 +536,7 @@ class SupportPipeline:
         if card is not None:
             fallback_note = "card_disagrees"
         return finish(
-            _related_text(evidence),
+            _related_text(query, evidence),
             "no_match",
             "No confident Ryoku answer",
             evidence,

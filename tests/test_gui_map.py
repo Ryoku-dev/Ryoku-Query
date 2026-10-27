@@ -1,10 +1,12 @@
 import shutil
+import subprocess
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
-from tools.build_docs_chunks import collect_chunks
-from tools.build_gui_map import collect_entries, merge_channel_entries
+from tools.build_docs_chunks import build_docs_chunks, collect_chunks
+from tools.build_gui_map import build_gui_map, collect_entries, merge_channel_entries
 
 
 @unittest.skipUnless(shutil.which("node"), "node is required to evaluate QML schemas")
@@ -132,6 +134,71 @@ class ChannelMergeTests(unittest.TestCase):
         )
         self.assertEqual(
             by_id["setting:moved@unstable"]["path"], "Ryoku Hub > New"
+        )
+
+
+class GeneratedMetadataTests(unittest.TestCase):
+    def git_repo(self, path: Path, *, version: str | None = None) -> str:
+        path.mkdir(parents=True)
+        if version is not None:
+            (path / "VERSION").write_text(version + "\n", encoding="utf-8")
+        (path / "source.txt").write_text("source\n", encoding="utf-8")
+        subprocess.run(["git", "init", "-q", str(path)], check=True)
+        subprocess.run(
+            ["git", "-C", str(path), "config", "user.email", "nero@example.invalid"],
+            check=True,
+        )
+        subprocess.run(
+            ["git", "-C", str(path), "config", "user.name", "Nero tests"],
+            check=True,
+        )
+        subprocess.run(["git", "-C", str(path), "add", "."], check=True)
+        subprocess.run(
+            ["git", "-C", str(path), "commit", "-qm", "fixture"],
+            check=True,
+        )
+        return subprocess.run(
+            ["git", "-C", str(path), "rev-parse", "--short", "HEAD"],
+            check=True,
+            capture_output=True,
+            text=True,
+        ).stdout.strip()
+
+    def test_generated_maps_record_stable_version_and_commit(self):
+        directory = tempfile.TemporaryDirectory()
+        self.addCleanup(directory.cleanup)
+        root = Path(directory.name)
+        stable = root / "stable"
+        docs = root / "docs"
+        stable_commit = self.git_repo(stable, version="1.0.5")
+        docs_commit = self.git_repo(docs)
+        cli = stable / "ryoku/cli/main.go"
+        cli.parent.mkdir(parents=True)
+        cli.write_text(
+            'func usage() { fmt.Print(i18n.T("Usage: ryoku <command>\\n'
+            '  update --wait  wait for a build\\n")) }\n',
+            encoding="utf-8",
+        )
+
+        with patch("tools.build_gui_map.collect_entries", return_value=[]):
+            gui_payload = build_gui_map(stable)
+        with patch("tools.build_docs_chunks.collect_chunks", return_value=[]):
+            docs_payload = build_docs_chunks(docs, stable)
+
+        self.assertEqual(gui_payload["generated_from"]["stable_version"], "1.0.5")
+        self.assertEqual(
+            gui_payload["generated_from"]["stable_commit"],
+            stable_commit,
+        )
+        self.assertEqual(docs_payload["generated_from"]["stable_version"], "1.0.5")
+        self.assertEqual(
+            docs_payload["generated_from"]["stable_commit"],
+            stable_commit,
+        )
+        self.assertEqual(docs_payload["generated_from"]["docs_commit"], docs_commit)
+        self.assertIn(
+            "update --wait",
+            docs_payload["generated_from"]["stable_cli_usage"],
         )
 
 
